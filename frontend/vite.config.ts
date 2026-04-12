@@ -5,6 +5,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
+    host: true, // Listen on all network interfaces
+    allowedHosts: [
+      'localhost',
+      '192.168.1.3',
+      'mtprotoproxy.duckdns.org'
+    ],
     proxy: {
       '/api': {
         target: 'http://localhost:8000',

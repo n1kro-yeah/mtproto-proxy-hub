@@ -26,7 +26,7 @@ export function SortControl({ sortState, onSort, onReset }: SortControlProps) {
     icon: React.ReactNode;
     label: string;
   }> = [
-    { criterion: 'latency', icon: <SpeedIcon />, label: 'Latency' },
+    { criterion: 'latency', icon: <SpeedIcon />, label: 'Ping' },
     { criterion: 'status', icon: <SignalCellularAltIcon />, label: 'Status' },
     { criterion: 'type', icon: <CategoryIcon />, label: 'Type' },
     { criterion: 'country', icon: <PublicIcon />, label: 'Country' }

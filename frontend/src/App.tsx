@@ -3,10 +3,13 @@ import { motion } from 'framer-motion';
 import { ProxyCard } from './components/ProxyCard';
 import { SkeletonLoader } from './components/SkeletonLoader';
 import { SortControl } from './components/SortControl';
+import { PingTypeControl, type PingType } from './components/PingTypeControl';
+import { LanguageToggle } from './components/LanguageToggle';
 import { proxyService } from './services/api';
 import { HARDCODED_PROXIES, type Proxy } from './types/proxy';
 import type { SortState, SortCriterion } from './types/sort';
 import { sortProxies } from './utils/sorting';
+import { type Language, getTranslation } from './locales/translations';
 import './styles/App.css';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
@@ -28,6 +31,9 @@ function App() {
     criterion: null,
     direction: 'asc'
   });
+  const [pingType, setPingType] = useState<PingType>('tcp');
+  const [viaProxyUrl, setViaProxyUrl] = useState('https://www.gstatic.com/generate_204');
+  const [language, setLanguage] = useState<Language>('en');
 
   useEffect(() => {
     initializeProxies();
@@ -37,6 +43,24 @@ function App() {
     if (savedTheme === 'dark') {
       setDarkMode(true);
       document.body.classList.add('dark-version');
+    }
+
+    // Check for saved ping type preference
+    const savedPingType = localStorage.getItem('pingType') as PingType;
+    if (savedPingType === 'tcp' || savedPingType === 'icmp' || savedPingType === 'via-proxy') {
+      setPingType(savedPingType);
+    }
+
+    // Check for saved via proxy URL
+    const savedViaProxyUrl = localStorage.getItem('viaProxyUrl');
+    if (savedViaProxyUrl) {
+      setViaProxyUrl(savedViaProxyUrl);
+    }
+
+    // Check for saved language preference
+    const savedLanguage = localStorage.getItem('language') as Language;
+    if (savedLanguage === 'en' || savedLanguage === 'ru') {
+      setLanguage(savedLanguage);
     }
   }, []);
 
@@ -98,7 +122,11 @@ function App() {
       // Set all proxies to checking status
       setProxies(prev => prev.map(p => ({ ...p, status: 'checking' as const })));
 
-      const results = await proxyService.checkAllProxies(loadedProxies);
+      const results = await proxyService.checkAllProxies(
+        loadedProxies, 
+        pingType,
+        pingType === 'via-proxy' ? viaProxyUrl : undefined
+      );
       setProxies(results);
       setLastCheckTime(new Date());
     } catch (err) {
@@ -118,7 +146,11 @@ function App() {
         i === index ? { ...p, status: 'checking' as const } : p
       ));
 
-      const result = await proxyService.checkProxy(proxyToCheck);
+      const result = await proxyService.checkProxy(
+        proxyToCheck, 
+        pingType,
+        pingType === 'via-proxy' ? viaProxyUrl : undefined
+      );
 
       setProxies(prev => prev.map((p, i) =>
         i === index ? result : p
@@ -131,14 +163,33 @@ function App() {
     }
   };
 
-  const copyToClipboard = (proxy: Proxy) => {
-    let link = '';
-    if (proxy.type === 'mtproto') {
-      link = `tg://proxy?server=${proxy.host}&port=${proxy.port}&secret=${proxy.secret}`;
-    } else {
-      link = `tg://socks?server=${proxy.host}&port=${proxy.port}${proxy.user ? `&user=${proxy.user}&pass=${proxy.pass}` : ''}`;
+  const copyToClipboard = async (proxy: Proxy) => {
+    try {
+      let link = '';
+      if (proxy.type === 'mtproto') {
+        link = `tg://proxy?server=${proxy.host}&port=${proxy.port}&secret=${proxy.secret}`;
+      } else {
+        link = `tg://socks?server=${proxy.host}&port=${proxy.port}${proxy.user ? `&user=${proxy.user}&pass=${proxy.pass}` : ''}`;
+      }
+      await navigator.clipboard.writeText(link);
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err);
+      // Fallback for older browsers or when clipboard API is not available
+      const textArea = document.createElement('textarea');
+      textArea.value = proxy.type === 'mtproto' 
+        ? `tg://proxy?server=${proxy.host}&port=${proxy.port}&secret=${proxy.secret}`
+        : `tg://socks?server=${proxy.host}&port=${proxy.port}${proxy.user ? `&user=${proxy.user}&pass=${proxy.pass}` : ''}`;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+      } catch (e) {
+        console.error('Fallback copy failed:', e);
+      }
+      document.body.removeChild(textArea);
     }
-    navigator.clipboard.writeText(link);
   };
 
   const handleSort = (criterion: Exclude<SortCriterion, null>) => {
@@ -151,6 +202,25 @@ function App() {
   const handleResetSort = () => {
     setSortState({ criterion: null, direction: 'asc' });
   };
+
+  const handlePingTypeChange = (type: PingType) => {
+    setPingType(type);
+    localStorage.setItem('pingType', type);
+    console.log(`Ping type changed to: ${type}`);
+  };
+
+  const handleViaProxyUrlChange = (url: string) => {
+    setViaProxyUrl(url);
+    localStorage.setItem('viaProxyUrl', url);
+    console.log(`Via Proxy URL changed to: ${url}`);
+  };
+
+  const handleLanguageChange = (lang: Language) => {
+    setLanguage(lang);
+    localStorage.setItem('language', lang);
+  };
+
+  const t = (key: Parameters<typeof getTranslation>[1]) => getTranslation(language, key);
 
   const sortedProxies = useMemo(() => {
     return sortProxies(proxies, sortState);
@@ -180,9 +250,9 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>MTProto Proxy Hub</h1>
-        <p>Monitor your Telegram proxy connections</p>
-        <button onClick={toggleDarkMode} className="theme-toggle" title="Toggle theme (Beta)">
+        <h1>{t('title')}</h1>
+        <p>{t('subtitle')}</p>
+        <button onClick={toggleDarkMode} className="theme-toggle" title={t('toggleTheme')}>
           {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
           <span className="beta-badge">BETA</span>
         </button>
@@ -196,7 +266,7 @@ function App() {
             <div className="stat-icon"><CheckCircleIcon /></div>
             <div className="stat-content">
               <div className="stat-value">{onlineCount}</div>
-              <div className="stat-label">Online</div>
+              <div className="stat-label">{t('online')}</div>
             </div>
           </div>
 
@@ -204,7 +274,7 @@ function App() {
             <div className="stat-icon"><CancelIcon /></div>
             <div className="stat-content">
               <div className="stat-value">{offlineCount}</div>
-              <div className="stat-label">Offline</div>
+              <div className="stat-label">{t('offline')}</div>
             </div>
           </div>
 
@@ -212,7 +282,7 @@ function App() {
             <div className="stat-icon"><SyncIcon /></div>
             <div className="stat-content">
               <div className="stat-value">{checkingCount}</div>
-              <div className="stat-label">Checking</div>
+              <div className="stat-label">{t('checking')}</div>
             </div>
           </div>
 
@@ -220,7 +290,7 @@ function App() {
             <div className="stat-icon"><HelpIcon /></div>
             <div className="stat-content">
               <div className="stat-value">{uncheckedCount}</div>
-              <div className="stat-label">Unchecked</div>
+              <div className="stat-label">{t('unchecked')}</div>
             </div>
           </div>
         </div>
@@ -228,14 +298,20 @@ function App() {
         <div className="proxies-section">
           <div className="section-header">
             <div className="header-left">
-              <h2>Proxy List</h2>
+              <h2>{t('proxyList')}</h2>
               {lastCheckTime && (
                 <span className="last-check">
-                  Last checked: {lastCheckTime.toLocaleTimeString()}
+                  {t('lastChecked')}: {lastCheckTime.toLocaleTimeString()}
                 </span>
               )}
             </div>
             <div className="header-right">
+              <PingTypeControl 
+                pingType={pingType}
+                onPingTypeChange={handlePingTypeChange}
+                viaProxyUrl={viaProxyUrl}
+                onViaProxyUrlChange={handleViaProxyUrlChange}
+              />
               <SortControl 
                 sortState={sortState}
                 onSort={handleSort}
@@ -249,12 +325,12 @@ function App() {
                 {checkingAll ? (
                   <>
                     <span className="spinner"></span>
-                    Checking All...
+                    {t('checkingAll')}
                   </>
                 ) : (
                   <>
                     <RefreshIcon />
-                    Refresh All
+                    {t('refreshAll')}
                   </>
                 )}
               </button>

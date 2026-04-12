@@ -6,6 +6,9 @@ import time
 from typing import Optional, Literal
 import httpx
 from urllib.parse import urlparse, parse_qs
+import subprocess
+import platform
+import re
 
 app = FastAPI(title="MTProto Proxy Hub")
 
@@ -28,6 +31,8 @@ class ProxyCheck(BaseModel):
     secret: Optional[str] = None
     user: Optional[str] = None
     pass_: Optional[str] = None
+    ping_type: Optional[Literal["tcp", "icmp", "via-proxy"]] = "tcp"
+    via_proxy_url: Optional[str] = "https://www.gstatic.com/generate_204"
 
 
 class ProxyResult(BaseModel):
@@ -49,7 +54,7 @@ class ProxiesRequest(BaseModel):
 
 
 async def check_connection(host: str, port: int, timeout: float = 5.0) -> tuple[bool, Optional[float]]:
-    """Check if proxy is accessible"""
+    """Check if proxy is accessible using TCP connection"""
     start = time.time()
     try:
         reader, writer = await asyncio.wait_for(
@@ -61,6 +66,84 @@ async def check_connection(host: str, port: int, timeout: float = 5.0) -> tuple[
         await writer.wait_closed()
         return True, latency
     except Exception:
+        return False, None
+
+
+async def check_via_proxy(host: str, port: int, proxy_type: str, secret: Optional[str], test_url: str, timeout: float = 10.0) -> tuple[bool, Optional[float]]:
+    """Check proxy by making HTTP request through it"""
+    try:
+        # Build proxy URL based on type
+        if proxy_type == "mtproto":
+            # MTProto proxies use SOCKS5 protocol
+            proxy_url = f"socks5://{host}:{port}"
+        else:
+            # SOCKS5 proxy
+            proxy_url = f"socks5://{host}:{port}"
+        
+        start = time.time()
+        
+        async with httpx.AsyncClient(
+            proxies=proxy_url,
+            timeout=timeout,
+            follow_redirects=True
+        ) as client:
+            response = await client.get(test_url)
+            latency = (time.time() - start) * 1000
+            
+            # Check if response is successful (200-299 status codes or 204 No Content)
+            if response.status_code in range(200, 300):
+                return True, latency
+            else:
+                return False, None
+                
+    except Exception as e:
+        print(f"Via proxy check error: {e}")
+        return False, None
+    """Check host using ICMP ping"""
+    try:
+        # Determine ping command based on OS
+        param = '-n' if platform.system().lower() == 'windows' else '-c'
+        timeout_param = '-w' if platform.system().lower() == 'windows' else '-W'
+        
+        # Run ping command
+        command = ['ping', param, '1', timeout_param, str(int(timeout * 1000) if platform.system().lower() == 'windows' else str(int(timeout))), host]
+        
+        start = time.time()
+        result = subprocess.run(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=timeout + 1
+        )
+        
+        if result.returncode == 0:
+            # Parse latency from ping output
+            output = result.stdout.decode()
+            
+            # Windows: time=XXms or time<1ms
+            # Linux: time=XX.X ms
+            if platform.system().lower() == 'windows':
+                match = re.search(r'time[=<](\d+)ms', output, re.IGNORECASE)
+                if match:
+                    latency = float(match.group(1))
+                else:
+                    # If time<1ms, use 0.5ms as estimate
+                    if 'time<1ms' in output.lower():
+                        latency = 0.5
+                    else:
+                        latency = (time.time() - start) * 1000
+            else:
+                match = re.search(r'time=([\d.]+)\s*ms', output, re.IGNORECASE)
+                if match:
+                    latency = float(match.group(1))
+                else:
+                    latency = (time.time() - start) * 1000
+            
+            return True, latency
+        else:
+            return False, None
+    except Exception as e:
+        print(f"ICMP ping error: {e}")
         return False, None
 
 
@@ -149,7 +232,20 @@ async def get_proxies():
 @app.post("/check-proxy", response_model=ProxyResult)
 async def check_proxy(proxy: ProxyCheck):
     """Check single proxy"""
-    is_online, latency = await check_connection(proxy.host, proxy.port)
+    # Choose ping method based on ping_type
+    if proxy.ping_type == "icmp":
+        is_online, latency = await check_icmp_ping(proxy.host)
+    elif proxy.ping_type == "via-proxy":
+        is_online, latency = await check_via_proxy(
+            proxy.host, 
+            proxy.port, 
+            proxy.type,
+            proxy.secret,
+            proxy.via_proxy_url or "https://www.gstatic.com/generate_204"
+        )
+    else:
+        is_online, latency = await check_connection(proxy.host, proxy.port)
+    
     country, city = await get_geolocation(proxy.host) if is_online else (None, None)
 
     return ProxyResult(
@@ -172,7 +268,20 @@ async def check_all_proxies(request: ProxiesRequest):
     """Check all proxies in parallel"""
 
     async def check_one(proxy: ProxyCheck) -> ProxyResult:
-        is_online, latency = await check_connection(proxy.host, proxy.port)
+        # Choose ping method based on ping_type
+        if proxy.ping_type == "icmp":
+            is_online, latency = await check_icmp_ping(proxy.host)
+        elif proxy.ping_type == "via-proxy":
+            is_online, latency = await check_via_proxy(
+                proxy.host, 
+                proxy.port, 
+                proxy.type,
+                proxy.secret,
+                proxy.via_proxy_url or "https://www.gstatic.com/generate_204"
+            )
+        else:
+            is_online, latency = await check_connection(proxy.host, proxy.port)
+        
         country, city = await get_geolocation(proxy.host) if is_online else (None, None)
 
         return ProxyResult(
