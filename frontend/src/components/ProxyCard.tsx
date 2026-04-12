@@ -91,18 +91,6 @@ export function ProxyCard({ proxy, index, onCheck, onCopy }: ProxyCardProps) {
     return 'poor';
   };
 
-  const formatLastChecked = (timestamp: number | null) => {
-    if (!timestamp) return 'Never';
-    const date = new Date(timestamp * 1000);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-
-    if (diff < 60000) return 'Just now';
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-    return date.toLocaleDateString();
-  };
-
   const handleCopy = () => {
     onCopy(proxy);
     setCopied(true);
