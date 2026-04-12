@@ -9,19 +9,19 @@ echo ========================================
 echo   MTProto Proxy Hub - Control Panel
 echo ========================================
 echo.
-echo Starting servers in background...
+echo Starting servers...
 echo.
 
-REM Start Backend in background (hidden window)
-start /B "" cmd /c "cd ..\backend && python -m uvicorn main:app --reload --port 8000 > nul 2>&1"
+REM Start Backend in new window
+start "Backend Server" cmd /c "cd ..\backend && python -m uvicorn main:app --reload --port 8000"
 set BACKEND_STARTED=1
 echo [OK] Backend started on http://localhost:8000
 
 REM Wait a bit for backend to start
-timeout /t 2 /nobreak > nul
+timeout /t 3 /nobreak > nul
 
-REM Start Frontend in background (hidden window)
-start /B "" cmd /c "cd ..\frontend && npm run dev > nul 2>&1"
+REM Start Frontend in new window
+start "Frontend Server" cmd /c "cd ..\frontend && npm run dev"
 set FRONTEND_STARTED=1
 echo [OK] Frontend started on http://localhost:3000
 
@@ -31,6 +31,8 @@ echo   Servers Status
 echo ========================================
 echo Backend:  RUNNING (http://localhost:8000)
 echo Frontend: RUNNING (http://localhost:3000)
+echo.
+echo Check the separate windows for server logs!
 echo.
 echo ========================================
 echo   Available Commands

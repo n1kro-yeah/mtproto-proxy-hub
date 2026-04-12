@@ -27,7 +27,10 @@ export function PingTypeControl({ pingType, onPingTypeChange, viaProxyUrl, onVia
   const [shouldRender, setShouldRender] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [tempUrl, setTempUrl] = useState(viaProxyUrl);
+  const [isTextChanging, setIsTextChanging] = useState(false);
+  const [displayLabel, setDisplayLabel] = useState('TCP Ping');
   const menuRef = useRef<HTMLDivElement>(null);
+  const prevPingTypeRef = useRef<PingType>(pingType);
 
   const pingOptions: Array<{
     type: PingType;
@@ -54,6 +57,28 @@ export function PingTypeControl({ pingType, onPingTypeChange, viaProxyUrl, onVia
       description: 'HTTP request through proxy'
     }
   ];
+
+  // Animate text change when ping type changes
+  useEffect(() => {
+    const currentOption = pingOptions.find(opt => opt.type === pingType);
+    const newLabel = currentOption?.label || 'TCP Ping';
+    
+    if (prevPingTypeRef.current !== pingType && displayLabel !== newLabel) {
+      setIsTextChanging(true);
+      
+      // Fade out
+      setTimeout(() => {
+        setDisplayLabel(newLabel);
+      }, 150);
+      
+      // Fade in
+      setTimeout(() => {
+        setIsTextChanging(false);
+      }, 300);
+    }
+    
+    prevPingTypeRef.current = pingType;
+  }, [pingType]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -117,8 +142,6 @@ export function PingTypeControl({ pingType, onPingTypeChange, viaProxyUrl, onVia
     setIsDialogOpen(false);
   };
 
-  const currentOption = pingOptions.find(opt => opt.type === pingType);
-
   return (
     <>
       <div className="ping-type-control-wrapper" ref={menuRef}>
@@ -128,7 +151,7 @@ export function PingTypeControl({ pingType, onPingTypeChange, viaProxyUrl, onVia
           title="Select ping type"
         >
           <NetworkCheckIcon />
-          <span>{currentOption?.label}</span>
+          <span className={isTextChanging ? 'text-changing' : ''}>{displayLabel}</span>
           <KeyboardArrowDownIcon className={`arrow-icon ${isOpen ? 'open' : ''}`} />
         </button>
 

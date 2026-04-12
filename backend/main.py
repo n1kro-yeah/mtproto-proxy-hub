@@ -99,6 +99,9 @@ async def check_via_proxy(host: str, port: int, proxy_type: str, secret: Optiona
     except Exception as e:
         print(f"Via proxy check error: {e}")
         return False, None
+
+
+async def check_icmp_ping(host: str, timeout: float = 5.0) -> tuple[bool, Optional[float]]:
     """Check host using ICMP ping"""
     try:
         # Determine ping command based on OS
@@ -190,12 +193,15 @@ async def load_proxies_from_github():
     global loaded_proxies
     url = "https://raw.githubusercontent.com/SoliSpirit/mtproto/master/all_proxies.txt"
     
+    print(f"🔄 Loading proxies from GitHub...")
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(url)
             if response.status_code == 200:
                 lines = response.text.strip().split('\n')
                 proxies = []
+                
+                print(f"📄 Found {len(lines)} lines in file")
                 
                 for line in lines:
                     line = line.strip()
@@ -205,11 +211,15 @@ async def load_proxies_from_github():
                             proxies.append(proxy_data)
                 
                 loaded_proxies = proxies
-                print(f"✓ Loaded {len(loaded_proxies)} proxies from GitHub")
+                print(f"✅ Successfully loaded {len(loaded_proxies)} proxies from GitHub")
+                if len(loaded_proxies) > 0:
+                    print(f"📊 First proxy example: {loaded_proxies[0]}")
             else:
-                print(f"✗ Failed to load proxies: HTTP {response.status_code}")
+                print(f"❌ Failed to load proxies: HTTP {response.status_code}")
     except Exception as e:
-        print(f"✗ Error loading proxies: {e}")
+        print(f"❌ Error loading proxies: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 @app.on_event("startup")
@@ -226,6 +236,7 @@ async def root():
 @app.get("/proxies")
 async def get_proxies():
     """Get list of loaded proxies"""
+    print(f"📡 GET /proxies called - returning {len(loaded_proxies)} proxies")
     return {"proxies": loaded_proxies, "count": len(loaded_proxies)}
 
 

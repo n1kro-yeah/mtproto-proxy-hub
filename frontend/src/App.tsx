@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ProxyCard } from './components/ProxyCard';
 import { SkeletonLoader } from './components/SkeletonLoader';
@@ -13,6 +14,7 @@ import { type Language, getTranslation } from './locales/translations';
 import './styles/App.css';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
+import InfoIcon from '@mui/icons-material/Info';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -20,6 +22,7 @@ import SyncIcon from '@mui/icons-material/Sync';
 import HelpIcon from '@mui/icons-material/Help';
 
 function App() {
+  const navigate = useNavigate();
   const [proxies, setProxies] = useState<Proxy[]>([]);
   const [loadedProxies, setLoadedProxies] = useState<Omit<Proxy, 'status' | 'latency' | 'country' | 'city' | 'last_checked'>[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +37,19 @@ function App() {
   const [pingType, setPingType] = useState<PingType>('tcp');
   const [viaProxyUrl, setViaProxyUrl] = useState('https://www.gstatic.com/generate_204');
   const [language, setLanguage] = useState<Language>('en');
+  const [isRefreshTextChanging, setIsRefreshTextChanging] = useState(false);
+  const prevCheckingAllRef = useRef(checkingAll);
+
+  // Animate refresh button text change
+  useEffect(() => {
+    if (prevCheckingAllRef.current !== checkingAll) {
+      setIsRefreshTextChanging(true);
+      setTimeout(() => {
+        setIsRefreshTextChanging(false);
+      }, 300);
+    }
+    prevCheckingAllRef.current = checkingAll;
+  }, [checkingAll]);
 
   useEffect(() => {
     initializeProxies();
@@ -77,11 +93,14 @@ function App() {
 
   const initializeProxies = async () => {
     try {
+      console.log('🔄 Fetching proxies from backend...');
       // Load proxies from backend
       const fetchedProxies = await proxyService.getProxies();
+      console.log(`✅ Received ${fetchedProxies.length} proxies from backend`);
       
       // Combine hardcoded proxies with fetched proxies from GitHub
       const combinedProxies = [...HARDCODED_PROXIES, ...fetchedProxies];
+      console.log(`📊 Total proxies (hardcoded + GitHub): ${combinedProxies.length}`);
       
       const initialProxies: Proxy[] = combinedProxies.map(p => ({
         ...p,
@@ -96,7 +115,7 @@ function App() {
       setProxies(initialProxies);
       setLoading(false);
     } catch (err) {
-      console.error('Failed to load proxies from backend, using only hardcoded:', err);
+      console.error('❌ Failed to load proxies from backend, using only hardcoded:', err);
       
       // Fallback to only hardcoded proxies if backend fails
       const initialProxies: Proxy[] = HARDCODED_PROXIES.map(p => ({
@@ -252,6 +271,9 @@ function App() {
       <header className="header">
         <h1>{t('title')}</h1>
         <p>{t('subtitle')}</p>
+        <button onClick={() => navigate('/about')} className="info-toggle" title="О проекте">
+          <InfoIcon />
+        </button>
         <button onClick={toggleDarkMode} className="theme-toggle" title={t('toggleTheme')}>
           {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
           <span className="beta-badge">BETA</span>
@@ -325,12 +347,12 @@ function App() {
                 {checkingAll ? (
                   <>
                     <span className="spinner"></span>
-                    {t('checkingAll')}
+                    <span className={isRefreshTextChanging ? 'text-changing' : ''}>{t('checkingAll')}</span>
                   </>
                 ) : (
                   <>
                     <RefreshIcon />
-                    {t('refreshAll')}
+                    <span className={isRefreshTextChanging ? 'text-changing' : ''}>{t('refreshAll')}</span>
                   </>
                 )}
               </button>

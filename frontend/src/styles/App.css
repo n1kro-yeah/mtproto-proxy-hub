@@ -120,6 +120,40 @@ body {
   justify-content: center;
 }
 
+.info-toggle {
+  position: absolute;
+  top: 0;
+  right: 60px;
+  width: 48px;
+  height: 48px;
+  background: var(--white);
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-toggle svg {
+  font-size: 1.5rem;
+  color: var(--gray-800);
+  transition: all 0.3s ease;
+}
+
+.info-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
+  background: var(--gray-50);
+}
+
+.info-toggle:hover svg {
+  transform: scale(1.1);
+}
+
 .theme-toggle svg {
   font-size: 1.5rem;
   color: var(--gray-700);
@@ -613,6 +647,35 @@ body.dark-version .skeleton-info-row:not(:last-child) {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Text change animation */
+@keyframes textFadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes textFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Apply text change animation */
+.text-changing {
+  animation: textFadeOut 0.15s ease-out forwards, textFadeIn 0.15s 0.15s ease-in forwards;
+  display: inline-block;
 }
 
 .proxies-grid {
@@ -1304,6 +1367,20 @@ body.dark-version .header p {
 body.dark-version .theme-toggle {
   background: #334155;
   border-color: #475569;
+}
+
+body.dark-version .info-toggle {
+  background: var(--gray-800);
+  border-color: var(--gray-800);
+}
+
+body.dark-version .info-toggle svg {
+  color: var(--white);
+}
+
+body.dark-version .info-toggle:hover {
+  border-color: var(--primary);
+  background: var(--gray-700);
 }
 
 body.dark-version .theme-toggle svg {

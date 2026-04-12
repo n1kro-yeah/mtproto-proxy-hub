@@ -19,7 +19,10 @@ export function SortControl({ sortState, onSort, onReset }: SortControlProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
+  const [isTextChanging, setIsTextChanging] = useState(false);
+  const [displayLabel, setDisplayLabel] = useState('Sort');
   const menuRef = useRef<HTMLDivElement>(null);
+  const prevCriterionRef = useRef<SortCriterion>(null);
 
   const sortButtons: Array<{
     criterion: Exclude<SortCriterion, null>;
@@ -31,6 +34,27 @@ export function SortControl({ sortState, onSort, onReset }: SortControlProps) {
     { criterion: 'type', icon: <CategoryIcon />, label: 'Type' },
     { criterion: 'country', icon: <PublicIcon />, label: 'Country' }
   ];
+
+  // Animate text change when sort criterion changes
+  useEffect(() => {
+    const newLabel = getActiveSortLabel();
+    
+    if (prevCriterionRef.current !== sortState.criterion && displayLabel !== newLabel) {
+      setIsTextChanging(true);
+      
+      // Fade out
+      setTimeout(() => {
+        setDisplayLabel(newLabel);
+      }, 150); // Half of animation duration
+      
+      // Fade in
+      setTimeout(() => {
+        setIsTextChanging(false);
+      }, 300); // Full animation duration
+    }
+    
+    prevCriterionRef.current = sortState.criterion;
+  }, [sortState.criterion]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -98,7 +122,7 @@ export function SortControl({ sortState, onSort, onReset }: SortControlProps) {
         title="Sort options"
       >
         <SortIcon />
-        <span>{getActiveSortLabel()}</span>
+        <span className={isTextChanging ? 'text-changing' : ''}>{displayLabel}</span>
         {sortState.criterion && (
           <span className="direction-icon">
             {sortState.direction === 'desc' ? <ArrowDownwardIcon fontSize="small" /> : <ArrowUpwardIcon fontSize="small" />}
