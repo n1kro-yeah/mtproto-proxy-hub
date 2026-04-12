@@ -1129,16 +1129,55 @@ body.dark-version .skeleton-info-row:not(:last-child) {
     padding: 1.5rem 1rem;
   }
 
+  .header {
+    margin-bottom: 2rem;
+  }
+
   .header h1 {
     font-size: 2rem;
   }
 
+  .header p {
+    font-size: 1rem;
+  }
+
+  .theme-toggle {
+    width: 44px;
+    height: 44px;
+  }
+
+  .beta-badge {
+    font-size: 0.45rem;
+    padding: 0.1rem 0.3rem;
+  }
+
   .stats-section {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    padding: 1.25rem;
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
   }
 
   .proxies-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 
   .section-header {
@@ -1147,8 +1186,77 @@ body.dark-version .skeleton-info-row:not(:last-child) {
     align-items: stretch;
   }
 
+  .header-right {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .sort-toggle-btn,
+  .btn-check-all {
+    width: 100%;
+    justify-content: center;
+  }
+
   .proxies-section {
-    padding: 1.5rem;
+    padding: 1.5rem 1rem;
+  }
+
+  .proxy-card {
+    padding: 1.25rem;
+  }
+
+  .proxy-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .proxy-type-badge {
+    font-size: 0.7rem;
+  }
+
+  .info-row {
+    padding: 0.5rem 0;
+  }
+
+  .label,
+  .value {
+    font-size: 0.875rem;
+  }
+
+  .proxy-actions {
+    gap: 0.5rem;
+  }
+
+  .btn-check,
+  .btn-copy {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+  .header h1 {
+    font-size: 1.75rem;
+  }
+
+  .stats-section {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    flex-direction: row;
+  }
+
+  .proxy-card {
+    padding: 1rem;
+  }
+
+  .sort-menu {
+    width: 100%;
+    left: 0;
+    right: 0;
   }
 }
 

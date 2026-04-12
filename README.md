@@ -166,6 +166,10 @@ tg://socks?server=HOST&port=PORT&user=USER&pass=PASS
 
 _Добавьте скриншоты в папку `screenshots/` и обновите этот раздел_
 
+## 🤝 Contributors
+
+This project was developed with assistance from [Kiro AI](https://kiro.ai) - an AI-powered IDE that helped with code generation, design, and architecture decisions.
+
 ## 📄 Лицензия
 
 MIT - см. файл [LICENSE](LICENSE)

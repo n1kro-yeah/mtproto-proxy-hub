@@ -1,0 +1,19 @@
+# Exclude font files from language statistics
+*.otf linguist-vendored
+*.ttf linguist-vendored
+*.woff linguist-vendored
+*.woff2 linguist-vendored
+
+# Exclude generated files
+package-lock.json linguist-generated
+*.min.js linguist-generated
+*.min.css linguist-generated
+
+# Mark documentation
+*.md linguist-documentation
+
+# Ensure correct language detection
+*.tsx linguist-language=TypeScript
+*.ts linguist-language=TypeScript
+*.py linguist-language=Python
+*.css linguist-language=CSS
