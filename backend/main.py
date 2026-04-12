@@ -108,20 +108,37 @@ async def check_icmp_ping(host: str, timeout: float = 5.0) -> tuple[bool, Option
         param = '-n' if platform.system().lower() == 'windows' else '-c'
         timeout_param = '-w' if platform.system().lower() == 'windows' else '-W'
         
-        # Run ping command
-        command = ['ping', param, '1', timeout_param, str(int(timeout * 1000) if platform.system().lower() == 'windows' else str(int(timeout))), host]
+        # Run ping command with shorter timeout
+        command = ['ping', param, '1', timeout_param, '2000' if platform.system().lower() == 'windows' else '2', host]
         
         start = time.time()
         result = subprocess.run(
             command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            timeout=timeout + 1
+            timeout=3,  # Hard timeout of 3 seconds
+            creationflags=subprocess.CREATE_NO_WINDOW if platform.system().lower() == 'windows' else 0
         )
         
         if result.returncode == 0:
             # Parse latency from ping output
-            output = result.stdout.decode()
+            # Use appropriate encoding for Windows (cp866 for Russian Windows console)
+            try:
+                if platform.system().lower() == 'windows':
+                    # Try cp866 first (Russian Windows console), then cp1251, then utf-8
+                    for encoding in ['cp866', 'cp1251', 'utf-8', 'latin-1']:
+                        try:
+                            output = result.stdout.decode(encoding)
+                            break
+                        except UnicodeDecodeError:
+                            continue
+                    else:
+                        # If all fail, use latin-1 which never fails
+                        output = result.stdout.decode('latin-1')
+                else:
+                    output = result.stdout.decode('utf-8')
+            except Exception:
+                output = result.stdout.decode('latin-1')  # Fallback
             
             # Windows: time=XXms or time<1ms
             # Linux: time=XX.X ms
@@ -145,6 +162,9 @@ async def check_icmp_ping(host: str, timeout: float = 5.0) -> tuple[bool, Option
             return True, latency
         else:
             return False, None
+    except subprocess.TimeoutExpired:
+        print(f"ICMP ping timeout for {host}")
+        return False, None
     except Exception as e:
         print(f"ICMP ping error: {e}")
         return False, None
@@ -193,7 +213,7 @@ async def load_proxies_from_github():
     global loaded_proxies
     url = "https://raw.githubusercontent.com/SoliSpirit/mtproto/master/all_proxies.txt"
     
-    print(f"🔄 Loading proxies from GitHub...")
+    print("Loading proxies from GitHub...")
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(url)
@@ -201,7 +221,7 @@ async def load_proxies_from_github():
                 lines = response.text.strip().split('\n')
                 proxies = []
                 
-                print(f"📄 Found {len(lines)} lines in file")
+                print(f"Found {len(lines)} lines in file")
                 
                 for line in lines:
                     line = line.strip()
@@ -211,13 +231,13 @@ async def load_proxies_from_github():
                             proxies.append(proxy_data)
                 
                 loaded_proxies = proxies
-                print(f"✅ Successfully loaded {len(loaded_proxies)} proxies from GitHub")
+                print(f"Successfully loaded {len(loaded_proxies)} proxies from GitHub")
                 if len(loaded_proxies) > 0:
-                    print(f"📊 First proxy example: {loaded_proxies[0]}")
+                    print(f"First proxy example: {loaded_proxies[0]}")
             else:
-                print(f"❌ Failed to load proxies: HTTP {response.status_code}")
+                print(f"Failed to load proxies: HTTP {response.status_code}")
     except Exception as e:
-        print(f"❌ Error loading proxies: {e}")
+        print(f"Error loading proxies: {e}")
         import traceback
         traceback.print_exc()
 
@@ -236,7 +256,7 @@ async def root():
 @app.get("/proxies")
 async def get_proxies():
     """Get list of loaded proxies"""
-    print(f"📡 GET /proxies called - returning {len(loaded_proxies)} proxies")
+    print(f"GET /proxies called - returning {len(loaded_proxies)} proxies")
     return {"proxies": loaded_proxies, "count": len(loaded_proxies)}
 
 

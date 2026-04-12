@@ -5,6 +5,8 @@ import { ProxyCard } from './components/ProxyCard';
 import { SkeletonLoader } from './components/SkeletonLoader';
 import { SortControl } from './components/SortControl';
 import { PingTypeControl, type PingType } from './components/PingTypeControl';
+import { ViewModeControl, type ViewMode } from './components/ViewModeControl';
+import { AutoRefreshControl } from './components/AutoRefreshControl';
 import { LanguageToggle } from './components/LanguageToggle';
 import { proxyService } from './services/api';
 import { HARDCODED_PROXIES, type Proxy } from './types/proxy';
@@ -38,7 +40,10 @@ function App() {
   const [viaProxyUrl, setViaProxyUrl] = useState('https://www.gstatic.com/generate_204');
   const [language, setLanguage] = useState<Language>('en');
   const [isRefreshTextChanging, setIsRefreshTextChanging] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('card');
+  const [autoRefreshInterval, setAutoRefreshInterval] = useState<number | null>(null); // null = disabled by default
   const prevCheckingAllRef = useRef(checkingAll);
+  const autoRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Animate refresh button text change
   useEffect(() => {
@@ -50,6 +55,36 @@ function App() {
     }
     prevCheckingAllRef.current = checkingAll;
   }, [checkingAll]);
+
+  // Auto-refresh functionality
+  useEffect(() => {
+    // Clear existing timer
+    if (autoRefreshTimerRef.current) {
+      clearInterval(autoRefreshTimerRef.current);
+      autoRefreshTimerRef.current = null;
+    }
+
+    // Set up new timer if interval is set
+    if (autoRefreshInterval !== null && autoRefreshInterval > 0) {
+      const intervalMs = autoRefreshInterval * 60 * 1000; // Convert minutes to milliseconds
+      
+      autoRefreshTimerRef.current = setInterval(() => {
+        console.log(`Auto-refresh triggered (every ${autoRefreshInterval} minutes)`);
+        checkAllProxies();
+      }, intervalMs);
+
+      console.log(`Auto-refresh enabled: every ${autoRefreshInterval} minutes`);
+    } else {
+      console.log('Auto-refresh disabled');
+    }
+
+    // Cleanup on unmount or when interval changes
+    return () => {
+      if (autoRefreshTimerRef.current) {
+        clearInterval(autoRefreshTimerRef.current);
+      }
+    };
+  }, [autoRefreshInterval]); // Only depend on interval, not on checkAllProxies
 
   useEffect(() => {
     initializeProxies();
@@ -78,6 +113,19 @@ function App() {
     if (savedLanguage === 'en' || savedLanguage === 'ru') {
       setLanguage(savedLanguage);
     }
+
+    // Check for saved view mode
+    const savedViewMode = localStorage.getItem('viewMode') as ViewMode;
+    if (savedViewMode === 'card' || savedViewMode === 'compact') {
+      setViewMode(savedViewMode);
+    }
+
+    // Check for saved auto-refresh interval
+    const savedInterval = localStorage.getItem('autoRefreshInterval');
+    if (savedInterval) {
+      const interval = savedInterval === 'null' ? null : parseInt(savedInterval);
+      setAutoRefreshInterval(interval);
+    }
   }, []);
 
   const toggleDarkMode = () => {
@@ -93,14 +141,14 @@ function App() {
 
   const initializeProxies = async () => {
     try {
-      console.log('🔄 Fetching proxies from backend...');
+      console.log('Loading proxies from backend...');
       // Load proxies from backend
       const fetchedProxies = await proxyService.getProxies();
-      console.log(`✅ Received ${fetchedProxies.length} proxies from backend`);
+      console.log(`Received ${fetchedProxies.length} proxies from backend`);
       
       // Combine hardcoded proxies with fetched proxies from GitHub
       const combinedProxies = [...HARDCODED_PROXIES, ...fetchedProxies];
-      console.log(`📊 Total proxies (hardcoded + GitHub): ${combinedProxies.length}`);
+      console.log(`Total proxies (hardcoded + GitHub): ${combinedProxies.length}`);
       
       const initialProxies: Proxy[] = combinedProxies.map(p => ({
         ...p,
@@ -115,7 +163,7 @@ function App() {
       setProxies(initialProxies);
       setLoading(false);
     } catch (err) {
-      console.error('❌ Failed to load proxies from backend, using only hardcoded:', err);
+      console.error('Failed to load proxies from backend, using only hardcoded:', err);
       
       // Fallback to only hardcoded proxies if backend fails
       const initialProxies: Proxy[] = HARDCODED_PROXIES.map(p => ({
@@ -239,6 +287,16 @@ function App() {
     localStorage.setItem('language', lang);
   };
 
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode);
+    localStorage.setItem('viewMode', mode);
+  };
+
+  const handleAutoRefreshChange = (interval: number | null) => {
+    setAutoRefreshInterval(interval);
+    localStorage.setItem('autoRefreshInterval', interval === null ? 'null' : interval.toString());
+  };
+
   const t = (key: Parameters<typeof getTranslation>[1]) => getTranslation(language, key);
 
   const sortedProxies = useMemo(() => {
@@ -328,6 +386,14 @@ function App() {
               )}
             </div>
             <div className="header-right">
+              <ViewModeControl 
+                viewMode={viewMode}
+                onViewModeChange={handleViewModeChange}
+              />
+              <AutoRefreshControl 
+                interval={autoRefreshInterval}
+                onIntervalChange={handleAutoRefreshChange}
+              />
               <PingTypeControl 
                 pingType={pingType}
                 onPingTypeChange={handlePingTypeChange}
@@ -359,7 +425,7 @@ function App() {
             </div>
           </div>
 
-          <div className="proxies-grid">
+          <div className={`proxies-grid ${viewMode === 'compact' ? 'compact-view' : ''}`}>
             {sortedProxies.map((proxy, idx) => (
               <motion.div
                 key={`${proxy.host}-${proxy.port}-${proxy.secret}`}
@@ -378,6 +444,7 @@ function App() {
                   index={idx}
                   onCheck={handleCheckSingle}
                   onCopy={copyToClipboard}
+                  viewMode={viewMode}
                 />
               </motion.div>
             ))}

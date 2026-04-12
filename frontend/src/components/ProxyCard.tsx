@@ -12,9 +12,10 @@ interface ProxyCardProps {
   index: number;
   onCheck: (index: number) => void;
   onCopy: (proxy: Proxy) => void;
+  viewMode?: 'card' | 'compact';
 }
 
-export function ProxyCard({ proxy, index, onCheck, onCopy }: ProxyCardProps) {
+export function ProxyCard({ proxy, index, onCheck, onCopy, viewMode = 'card' }: ProxyCardProps) {
   const [showSecret, setShowSecret] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -96,6 +97,67 @@ export function ProxyCard({ proxy, index, onCheck, onCopy }: ProxyCardProps) {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  if (viewMode === 'compact') {
+    return (
+      <div className={`proxy-card-compact ${proxy.status}`}>
+        <div className="compact-type">
+          <span className="proxy-type-badge-compact">
+            {proxy.type === 'mtproto' ? 'MT' : 'S5'}
+          </span>
+        </div>
+        
+        <div className="compact-status">
+          <span className={`status-indicator ${proxy.status}`}></span>
+        </div>
+
+        <div className="compact-host">
+          <span className="value host">{proxy.host}:{proxy.port}</span>
+        </div>
+
+        <div className="compact-location">
+          {proxy.status === 'online' && proxy.country ? (
+            <span className="value location">{getCountryFlag(proxy.country)} {proxy.country}</span>
+          ) : (
+            <span className="value small">N/A</span>
+          )}
+        </div>
+
+        <div className="compact-latency">
+          {proxy.latency !== null && proxy.status === 'online' ? (
+            <span className={`value latency ${getLatencyColor(proxy.latency)}`}>
+              {formatLatency(proxy.latency)}
+            </span>
+          ) : (
+            <span className="value small">N/A</span>
+          )}
+        </div>
+
+        <div className="compact-actions">
+          <button
+            onClick={() => onCheck(index)}
+            disabled={proxy.status === 'checking'}
+            className="btn-check-compact"
+            title="Check proxy status"
+          >
+            {proxy.status === 'checking' ? (
+              <span className="spinner-small"></span>
+            ) : (
+              <RefreshIcon fontSize="small" />
+            )}
+          </button>
+
+          <button
+            onClick={handleCopy}
+            className={`btn-copy-compact ${copied ? 'copied' : ''}`}
+            title="Copy Telegram link"
+          >
+            {copied ? <CheckIcon fontSize="small" /> : <ContentCopyIcon fontSize="small" />}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`proxy-card ${proxy.status}`}>
