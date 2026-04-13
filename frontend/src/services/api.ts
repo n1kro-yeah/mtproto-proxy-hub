@@ -39,12 +39,19 @@ export const proxyService = {
       ping_type: pingType,
       via_proxy_url: viaProxyUrl
     }));
-    const response = await fetch(`${API_BASE}/check-all-proxies`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ proxies: proxiesWithPingType })
-    });
-    if (!response.ok) throw new Error('Failed to check proxies');
-    return response.json();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    try {
+      const response = await fetch(`${API_BASE}/check-all-proxies`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ proxies: proxiesWithPingType }),
+        signal: controller.signal
+      });
+      if (!response.ok) throw new Error('Failed to check proxies');
+      return response.json();
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 };

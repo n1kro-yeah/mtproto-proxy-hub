@@ -123,7 +123,7 @@ export function PingTypeControl({ pingType, onPingTypeChange, viaProxyUrl, onVia
 
   const handlePingTypeClick = (type: PingType) => {
     onPingTypeChange(type);
-    closeMenu();
+    // Don't close menu - keep it open for multiple selections
   };
 
   const handleSettingsClick = (e: React.MouseEvent) => {

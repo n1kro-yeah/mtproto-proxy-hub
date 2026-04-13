@@ -90,7 +90,7 @@ export function About() {
           </section>
 
           <section className="about-section version-section">
-            <p className="version">Версия 1.0.0</p>
+            <p className="version">Версия 1.0.3</p>
           </section>
         </div>
       </div>

@@ -53,7 +53,7 @@ class ProxiesRequest(BaseModel):
     proxies: list[ProxyCheck]
 
 
-async def check_connection(host: str, port: int, timeout: float = 5.0) -> tuple[bool, Optional[float]]:
+async def check_connection(host: str, port: int, timeout: float = 2.0) -> tuple[bool, Optional[float]]:
     """Check if proxy is accessible using TCP connection"""
     start = time.time()
     try:
@@ -104,67 +104,60 @@ async def check_via_proxy(host: str, port: int, proxy_type: str, secret: Optiona
 async def check_icmp_ping(host: str, timeout: float = 5.0) -> tuple[bool, Optional[float]]:
     """Check host using ICMP ping"""
     try:
-        # Determine ping command based on OS
         param = '-n' if platform.system().lower() == 'windows' else '-c'
         timeout_param = '-w' if platform.system().lower() == 'windows' else '-W'
-        
-        # Run ping command with shorter timeout
         command = ['ping', param, '1', timeout_param, '2000' if platform.system().lower() == 'windows' else '2', host]
         
         start = time.time()
-        result = subprocess.run(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=3,  # Hard timeout of 3 seconds
-            creationflags=subprocess.CREATE_NO_WINDOW if platform.system().lower() == 'windows' else 0
+        
+        kwargs = {}
+        if platform.system().lower() == 'windows':
+            kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
+        
+        proc = await asyncio.create_subprocess_exec(
+            *command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            **kwargs
         )
         
-        if result.returncode == 0:
-            # Parse latency from ping output
-            # Use appropriate encoding for Windows (cp866 for Russian Windows console)
+        try:
+            stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=3.0)
+        except asyncio.TimeoutError:
+            proc.kill()
+            return False, None
+        
+        if proc.returncode == 0:
             try:
                 if platform.system().lower() == 'windows':
-                    # Try cp866 first (Russian Windows console), then cp1251, then utf-8
                     for encoding in ['cp866', 'cp1251', 'utf-8', 'latin-1']:
                         try:
-                            output = result.stdout.decode(encoding)
+                            output = stdout.decode(encoding)
                             break
                         except UnicodeDecodeError:
                             continue
                     else:
-                        # If all fail, use latin-1 which never fails
-                        output = result.stdout.decode('latin-1')
+                        output = stdout.decode('latin-1')
                 else:
-                    output = result.stdout.decode('utf-8')
+                    output = stdout.decode('utf-8')
             except Exception:
-                output = result.stdout.decode('latin-1')  # Fallback
+                output = stdout.decode('latin-1')
             
-            # Windows: time=XXms or time<1ms
-            # Linux: time=XX.X ms
             if platform.system().lower() == 'windows':
                 match = re.search(r'time[=<](\d+)ms', output, re.IGNORECASE)
                 if match:
                     latency = float(match.group(1))
-                else:
-                    # If time<1ms, use 0.5ms as estimate
-                    if 'time<1ms' in output.lower():
-                        latency = 0.5
-                    else:
-                        latency = (time.time() - start) * 1000
-            else:
-                match = re.search(r'time=([\d.]+)\s*ms', output, re.IGNORECASE)
-                if match:
-                    latency = float(match.group(1))
+                elif 'time<1ms' in output.lower():
+                    latency = 0.5
                 else:
                     latency = (time.time() - start) * 1000
+            else:
+                match = re.search(r'time=([\d.]+)\s*ms', output, re.IGNORECASE)
+                latency = float(match.group(1)) if match else (time.time() - start) * 1000
             
             return True, latency
         else:
             return False, None
-    except subprocess.TimeoutExpired:
-        print(f"ICMP ping timeout for {host}")
-        return False, None
     except Exception as e:
         print(f"ICMP ping error: {e}")
         return False, None
@@ -173,7 +166,7 @@ async def check_icmp_ping(host: str, timeout: float = 5.0) -> tuple[bool, Option
 async def get_geolocation(host: str) -> tuple[Optional[str], Optional[str]]:
     """Get country and city from IP"""
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
+        async with httpx.AsyncClient(timeout=2.0) as client:
             response = await client.get(f"http://ip-api.com/json/{host}")
             if response.status_code == 200:
                 data = response.json()
@@ -296,7 +289,7 @@ async def check_proxy(proxy: ProxyCheck):
 
 @app.post("/check-all-proxies", response_model=list[ProxyResult])
 async def check_all_proxies(request: ProxiesRequest):
-    """Check all proxies in parallel"""
+    """Check all proxies in parallel (skips geolocation for speed)"""
 
     async def check_one(proxy: ProxyCheck) -> ProxyResult:
         # Choose ping method based on ping_type
@@ -313,7 +306,8 @@ async def check_all_proxies(request: ProxiesRequest):
         else:
             is_online, latency = await check_connection(proxy.host, proxy.port)
         
-        country, city = await get_geolocation(proxy.host) if is_online else (None, None)
+        # Skip geolocation during bulk checks for speed
+        country, city = None, None
 
         return ProxyResult(
             host=proxy.host,
@@ -329,5 +323,13 @@ async def check_all_proxies(request: ProxiesRequest):
             last_checked=time.time()
         )
 
-    results = await asyncio.gather(*[check_one(p) for p in request.proxies])
+    try:
+        results = await asyncio.wait_for(
+            asyncio.gather(*[check_one(p) for p in request.proxies]),
+            timeout=25.0  # Hard 25 second timeout for entire batch
+        )
+    except asyncio.TimeoutError:
+        print("check-all-proxies timed out after 25 seconds")
+        raise HTTPException(status_code=504, detail="Proxy check timed out")
+    
     return list(results)

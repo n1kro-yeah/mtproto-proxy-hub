@@ -7,7 +7,6 @@ import { SortControl } from './components/SortControl';
 import { PingTypeControl, type PingType } from './components/PingTypeControl';
 import { ViewModeControl, type ViewMode } from './components/ViewModeControl';
 import { AutoRefreshControl } from './components/AutoRefreshControl';
-import { LanguageToggle } from './components/LanguageToggle';
 import { proxyService } from './services/api';
 import { HARDCODED_PROXIES, type Proxy } from './types/proxy';
 import type { SortState, SortCriterion } from './types/sort';
@@ -31,6 +30,7 @@ function App() {
   const [checkingAll, setCheckingAll] = useState(false);
   const [error, setError] = useState('');
   const [lastCheckTime, setLastCheckTime] = useState<Date | null>(null);
+  const [checkDuration, setCheckDuration] = useState<number | null>(null);
   const [darkMode, setDarkMode] = useState(false);
   const [sortState, setSortState] = useState<SortState>({
     criterion: null,
@@ -43,7 +43,7 @@ function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('card');
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<number | null>(null); // null = disabled by default
   const prevCheckingAllRef = useRef(checkingAll);
-  const autoRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const autoRefreshTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Animate refresh button text change
   useEffect(() => {
@@ -182,6 +182,7 @@ function App() {
   };
 
   const checkAllProxies = async () => {
+    const startTime = Date.now();
     try {
       setCheckingAll(true);
       setError('');
@@ -196,9 +197,18 @@ function App() {
       );
       setProxies(results);
       setLastCheckTime(new Date());
-    } catch (err) {
-      setError('Failed to check proxies');
+      setCheckDuration((Date.now() - startTime) / 1000); // Convert to seconds
+    } catch (err: any) {
+      if (err?.name === 'AbortError') {
+        setError('Check timed out after 30 seconds');
+      } else {
+        setError('Failed to check proxies');
+      }
       console.error(err);
+      // Reset all proxies to unchecked on error
+      setProxies(prev => prev.map(p => 
+        p.status === 'checking' ? { ...p, status: 'unchecked' as const } : p
+      ));
     } finally {
       setCheckingAll(false);
     }
@@ -280,11 +290,6 @@ function App() {
     setViaProxyUrl(url);
     localStorage.setItem('viaProxyUrl', url);
     console.log(`Via Proxy URL changed to: ${url}`);
-  };
-
-  const handleLanguageChange = (lang: Language) => {
-    setLanguage(lang);
-    localStorage.setItem('language', lang);
   };
 
   const handleViewModeChange = (mode: ViewMode) => {
@@ -382,6 +387,9 @@ function App() {
               {lastCheckTime && (
                 <span className="last-check">
                   {t('lastChecked')}: {lastCheckTime.toLocaleTimeString()}
+                  {checkDuration !== null && (
+                    <span className="check-duration"> ({checkDuration.toFixed(2)}s)</span>
+                  )}
                 </span>
               )}
             </div>
