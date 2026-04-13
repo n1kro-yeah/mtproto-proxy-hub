@@ -7,6 +7,46 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckIcon from '@mui/icons-material/Check';
 import PublicIcon from '@mui/icons-material/Public';
 
+const COUNTRY_CODES: Record<string, string> = {
+  'Afghanistan': 'af', 'Albania': 'al', 'Algeria': 'dz', 'Argentina': 'ar',
+  'Armenia': 'am', 'Australia': 'au', 'Austria': 'at', 'Azerbaijan': 'az',
+  'Bangladesh': 'bd', 'Belarus': 'by', 'Belgium': 'be', 'Bolivia': 'bo',
+  'Brazil': 'br', 'Bulgaria': 'bg', 'Cambodia': 'kh', 'Canada': 'ca',
+  'Chile': 'cl', 'China': 'cn', 'Colombia': 'co', 'Croatia': 'hr',
+  'Czech Republic': 'cz', 'Czechia': 'cz', 'Denmark': 'dk', 'Ecuador': 'ec',
+  'Egypt': 'eg', 'Estonia': 'ee', 'Ethiopia': 'et', 'Finland': 'fi',
+  'France': 'fr', 'Georgia': 'ge', 'Germany': 'de', 'Ghana': 'gh',
+  'Greece': 'gr', 'Hong Kong': 'hk', 'Hungary': 'hu', 'Iceland': 'is',
+  'India': 'in', 'Indonesia': 'id', 'Iran': 'ir', 'Iraq': 'iq',
+  'Ireland': 'ie', 'Israel': 'il', 'Italy': 'it', 'Japan': 'jp',
+  'Jordan': 'jo', 'Kazakhstan': 'kz', 'Kenya': 'ke', 'Kuwait': 'kw',
+  'Latvia': 'lv', 'Lebanon': 'lb', 'Lithuania': 'lt', 'Luxembourg': 'lu',
+  'Malaysia': 'my', 'Mexico': 'mx', 'Moldova': 'md', 'Morocco': 'ma',
+  'Myanmar': 'mm', 'Nepal': 'np', 'Netherlands': 'nl', 'New Zealand': 'nz',
+  'Nigeria': 'ng', 'Norway': 'no', 'Pakistan': 'pk', 'Peru': 'pe',
+  'Philippines': 'ph', 'Poland': 'pl', 'Portugal': 'pt', 'Qatar': 'qa',
+  'Romania': 'ro', 'Russia': 'ru', 'Saudi Arabia': 'sa', 'Serbia': 'rs',
+  'Singapore': 'sg', 'Slovakia': 'sk', 'Slovenia': 'si', 'South Africa': 'za',
+  'South Korea': 'kr', 'Spain': 'es', 'Sri Lanka': 'lk', 'Sweden': 'se',
+  'Switzerland': 'ch', 'Taiwan': 'tw', 'Thailand': 'th', 'Turkey': 'tr',
+  'Turkiye': 'tr', 'UAE': 'ae', 'United Arab Emirates': 'ae',
+  'Ukraine': 'ua', 'United Kingdom': 'gb', 'United States': 'us',
+  'Uruguay': 'uy', 'Uzbekistan': 'uz', 'Venezuela': 've', 'Vietnam': 'vn',
+};
+
+function CountryFlag({ country }: { country: string | null }) {
+  if (!country) return <PublicIcon fontSize="small" style={{ opacity: 0.5 }} />;
+  const code = COUNTRY_CODES[country];
+  if (!code) return <PublicIcon fontSize="small" style={{ opacity: 0.5 }} />;
+  return (
+    <span
+      className={`fi fi-${code}`}
+      style={{ borderRadius: '3px', width: '20px', height: '15px', display: 'inline-block', flexShrink: 0 }}
+      title={country}
+    />
+  );
+}
+
 interface ProxyCardProps {
   proxy: Proxy;
   index: number;
@@ -18,64 +58,6 @@ interface ProxyCardProps {
 export function ProxyCard({ proxy, index, onCheck, onCopy, viewMode = 'card' }: ProxyCardProps) {
   const [showSecret, setShowSecret] = useState(false);
   const [copied, setCopied] = useState(false);
-
-  const getCountryFlag = (country: string | null) => {
-    if (!country) return <PublicIcon fontSize="small" />;
-
-    const countryFlags: { [key: string]: string } = {
-      'Russia': '🇷🇺',
-      'United States': '🇺🇸',
-      'Germany': '🇩🇪',
-      'Netherlands': '🇳🇱',
-      'France': '🇫🇷',
-      'United Kingdom': '🇬🇧',
-      'Canada': '🇨🇦',
-      'Singapore': '🇸🇬',
-      'Japan': '🇯🇵',
-      'Australia': '🇦🇺',
-      'Brazil': '🇧🇷',
-      'India': '🇮🇳',
-      'China': '🇨🇳',
-      'South Korea': '🇰🇷',
-      'Italy': '🇮🇹',
-      'Spain': '🇪🇸',
-      'Poland': '🇵🇱',
-      'Ukraine': '🇺🇦',
-      'Turkey': '🇹🇷',
-      'Sweden': '🇸🇪',
-      'Switzerland': '🇨🇭',
-      'Finland': '🇫🇮',
-      'Norway': '🇳🇴',
-      'Denmark': '🇩🇰',
-      'Belgium': '🇧🇪',
-      'Austria': '🇦🇹',
-      'Czech Republic': '🇨🇿',
-      'Romania': '🇷🇴',
-      'Bulgaria': '🇧🇬',
-      'Greece': '🇬🇷',
-      'Portugal': '🇵🇹',
-      'Hungary': '🇭🇺',
-      'Ireland': '🇮🇪',
-      'Israel': '🇮🇱',
-      'UAE': '🇦🇪',
-      'Saudi Arabia': '🇸🇦',
-      'South Africa': '🇿🇦',
-      'Mexico': '🇲🇽',
-      'Argentina': '🇦🇷',
-      'Chile': '🇨🇱',
-      'Colombia': '🇨🇴',
-      'Thailand': '🇹🇭',
-      'Vietnam': '🇻🇳',
-      'Indonesia': '🇮🇩',
-      'Malaysia': '🇲🇾',
-      'Philippines': '🇵🇭',
-      'Hong Kong': '🇭🇰',
-      'Taiwan': '🇹🇼',
-      'New Zealand': '🇳🇿',
-    };
-
-    return countryFlags[country] || <PublicIcon fontSize="small" />;
-  };
 
   const formatLatency = (latency: number | null) => {
     if (latency === null) return 'N/A';
@@ -117,7 +99,7 @@ export function ProxyCard({ proxy, index, onCheck, onCopy, viewMode = 'card' }: 
 
         <div className="compact-location">
           {proxy.status === 'online' && proxy.country ? (
-            <span className="value location">{getCountryFlag(proxy.country)} {proxy.country}</span>
+            <span className="value location"><CountryFlag country={proxy.country} /> {proxy.country}</span>
           ) : (
             <span className="value small">N/A</span>
           )}
@@ -236,9 +218,9 @@ export function ProxyCard({ proxy, index, onCheck, onCopy, viewMode = 'card' }: 
           <span className="value location">
             {proxy.status === 'online'
               ? proxy.country && proxy.city
-                ? <>{getCountryFlag(proxy.country)} {proxy.city}, {proxy.country}</>
+                ? <><CountryFlag country={proxy.country} /> {proxy.city}, {proxy.country}</>
                 : proxy.country
-                ? <>{getCountryFlag(proxy.country)} {proxy.country}</>
+                ? <><CountryFlag country={proxy.country} /> {proxy.country}</>
                 : <><PublicIcon fontSize="small" /> Unknown</>
               : 'N/A'}
           </span>
