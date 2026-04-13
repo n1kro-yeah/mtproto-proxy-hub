@@ -22,10 +22,19 @@ start /B "" cmd /c "cd ..\backend_csharp && dotnet run > backend_csharp.log 2>&1
 set BACKEND_CSHARP_STARTED=1
 echo [OK] Backend (C#) started on http://localhost:8001
 
-REM Start C++ Backend in background (hidden)
-start /B "" cmd /c "cd ..\backend_cpp\build && proxy_checker.exe > ..\backend_cpp.log 2>&1"
-set BACKEND_CPP_STARTED=1
-echo [OK] Backend (C++) started on http://localhost:8002
+REM Start C++ Backend in background (hidden) - only if built
+if exist "..\backend_cpp\build\proxy_checker.exe" (
+    start /B "" cmd /c "cd ..\backend_cpp\build && proxy_checker.exe > ..\backend_cpp.log 2>&1"
+    set BACKEND_CPP_STARTED=1
+    echo [OK] Backend (C++) started on http://localhost:8002
+) else if exist "..\backend_cpp\build\Release\proxy_checker.exe" (
+    start /B "" cmd /c "cd ..\backend_cpp\build\Release && proxy_checker.exe > ..\..\backend_cpp.log 2>&1"
+    set BACKEND_CPP_STARTED=1
+    echo [OK] Backend (C++) started on http://localhost:8002
+) else (
+    set BACKEND_CPP_STARTED=0
+    echo [SKIP] Backend (C++) not built - run backend_cpp\build.bat first
+)
 
 REM Wait a bit for backend to start
 timeout /t 3 /nobreak > nul
@@ -41,13 +50,19 @@ echo   Servers Status
 echo ========================================
 echo Backend (Python):  RUNNING (http://localhost:8000)
 echo Backend (C#):      RUNNING (http://localhost:8001)
-echo Backend (C++):     RUNNING (http://localhost:8002)
+if %BACKEND_CPP_STARTED%==1 (
+    echo Backend (C++):     RUNNING (http://localhost:8002)
+) else (
+    echo Backend (C++):     NOT BUILT (run backend_cpp\build.bat to enable)
+)
 echo Frontend:          RUNNING (http://localhost:3000)
 echo.
 echo Logs are saved to:
 echo   backend/backend.log
 echo   backend_csharp/backend_csharp.log
-echo   backend_cpp/backend_cpp.log
+if %BACKEND_CPP_STARTED%==1 (
+    echo   backend_cpp/backend_cpp.log
+)
 echo   frontend/frontend.log
 echo.
 echo ========================================
