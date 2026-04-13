@@ -131,7 +131,7 @@ function App() {
 
     // Check for saved backend language
     const savedBackendLanguage = localStorage.getItem('backendLanguage') as BackendLanguage;
-    if (savedBackendLanguage === 'python' || savedBackendLanguage === 'csharp') {
+    if (savedBackendLanguage === 'python' || savedBackendLanguage === 'csharp' || savedBackendLanguage === 'cpp') {
       setBackendLanguage(savedBackendLanguage);
     }
   }, []);

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import CodeIcon from '@mui/icons-material/Code';
 import CheckIcon from '@mui/icons-material/Check';
 
-export type BackendLanguage = 'python' | 'csharp';
+export type BackendLanguage = 'python' | 'csharp' | 'cpp';
 
 interface BackendLanguageControlProps {
   language: BackendLanguage;
@@ -12,7 +12,9 @@ interface BackendLanguageControlProps {
 export function BackendLanguageControl({ language, onLanguageChange }: BackendLanguageControlProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isTextChanging, setIsTextChanging] = useState(false);
-  const [displayLabel, setDisplayLabel] = useState(language === 'python' ? 'Python' : 'C#');
+  const [displayLabel, setDisplayLabel] = useState(
+    language === 'python' ? 'Python' : language === 'csharp' ? 'C#' : 'C++'
+  );
   const menuRef = useRef<HTMLDivElement>(null);
   const prevLanguageRef = useRef(language);
 
@@ -20,7 +22,7 @@ export function BackendLanguageControl({ language, onLanguageChange }: BackendLa
     if (prevLanguageRef.current !== language) {
       setIsTextChanging(true);
       setTimeout(() => {
-        setDisplayLabel(language === 'python' ? 'Python' : 'C#');
+        setDisplayLabel(language === 'python' ? 'Python' : language === 'csharp' ? 'C#' : 'C++');
         setTimeout(() => {
           setIsTextChanging(false);
         }, 150);
@@ -76,6 +78,13 @@ export function BackendLanguageControl({ language, onLanguageChange }: BackendLa
           >
             <span>C#</span>
             {language === 'csharp' && <CheckIcon className="check-icon" />}
+          </button>
+          <button
+            onClick={() => handleLanguageSelect('cpp')}
+            className={`menu-item ${language === 'cpp' ? 'active' : ''}`}
+          >
+            <span>C++</span>
+            {language === 'cpp' && <CheckIcon className="check-icon" />}
           </button>
         </div>
       )}

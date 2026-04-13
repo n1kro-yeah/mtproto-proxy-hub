@@ -3,7 +3,12 @@ import type { PingType } from '../components/PingTypeControl';
 
 const getApiBase = () => {
   const backendLanguage = localStorage.getItem('backendLanguage') || 'python';
-  return backendLanguage === 'csharp' ? 'http://127.0.0.1:8001/api' : '/api';
+  if (backendLanguage === 'csharp') {
+    return 'http://127.0.0.1:8001/api';
+  } else if (backendLanguage === 'cpp') {
+    return 'http://127.0.0.1:8002/api';
+  }
+  return '/api';
 };
 
 export const proxyService = {

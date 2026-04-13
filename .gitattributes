@@ -19,3 +19,7 @@ package-lock.json linguist-generated
 *.css linguist-language=CSS
 *.cs linguist-language=C#
 *.csproj linguist-language=XML
+*.cpp linguist-language=C++
+*.h linguist-language=C++
+*.hpp linguist-language=C++
+CMakeLists.txt linguist-language=CMake

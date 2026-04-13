@@ -44,6 +44,21 @@ obj/
 *.exe
 *.pdb
 
+# C++
+build/
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+crow_all.h
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+
 # IDE
 .vscode/
 .idea/
@@ -63,6 +78,7 @@ logs/
 backend.log
 frontend.log
 backend_csharp.log
+backend_cpp.log
 
 # OS
 Thumbs.db
