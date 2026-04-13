@@ -325,6 +325,8 @@ namespace ProxyChecker
                 }
 
                 // Skip geolocation for bulk checks (performance)
+                var (country, city) = isOnline ? await GetGeolocation(proxy.Host) : (null, null);
+
                 return new ProxyResult
                 {
                     Host = proxy.Host,
@@ -335,8 +337,8 @@ namespace ProxyChecker
                     Pass = proxy.Pass,
                     Status = isOnline ? "online" : "offline",
                     Latency = latency,
-                    Country = null,
-                    City = null,
+                    Country = country,
+                    City = city,
                     LastChecked = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
                 };
             });

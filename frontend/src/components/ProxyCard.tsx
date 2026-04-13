@@ -98,10 +98,10 @@ export function ProxyCard({ proxy, index, onCheck, onCopy, viewMode = 'card' }: 
         </div>
 
         <div className="compact-location">
-          {proxy.status === 'online' && proxy.country ? (
+          {proxy.country ? (
             <span className="value location"><CountryFlag country={proxy.country} /> {proxy.country}</span>
           ) : (
-            <span className="value small">N/A</span>
+            <span className="value small">Unknown</span>
           )}
         </div>
 
@@ -216,13 +216,11 @@ export function ProxyCard({ proxy, index, onCheck, onCopy, viewMode = 'card' }: 
         <div className="info-row">
           <span className="label">Location</span>
           <span className="value location">
-            {proxy.status === 'online'
-              ? proxy.country && proxy.city
-                ? <><CountryFlag country={proxy.country} /> {proxy.city}, {proxy.country}</>
-                : proxy.country
-                ? <><CountryFlag country={proxy.country} /> {proxy.country}</>
-                : <><PublicIcon fontSize="small" /> Unknown</>
-              : 'N/A'}
+            {proxy.country && proxy.city
+              ? <><CountryFlag country={proxy.country} /> {proxy.city}, {proxy.country}</>
+              : proxy.country
+              ? <><CountryFlag country={proxy.country} /> {proxy.country}</>
+              : <><PublicIcon fontSize="small" style={{ opacity: 0.5 }} /> Unknown</>}
           </span>
         </div>
       </div>

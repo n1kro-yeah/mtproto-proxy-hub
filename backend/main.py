@@ -306,8 +306,7 @@ async def check_all_proxies(request: ProxiesRequest):
         else:
             is_online, latency = await check_connection(proxy.host, proxy.port)
         
-        # Skip geolocation during bulk checks for speed
-        country, city = None, None
+        country, city = await get_geolocation(proxy.host) if is_online else (None, None)
 
         return ProxyResult(
             host=proxy.host,
