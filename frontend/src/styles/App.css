@@ -143,7 +143,7 @@ body {
 }
 
 .info-toggle:hover {
-  transform: translateY(-2px);
+  transform: translateY(-2px) rotate(15deg);
   box-shadow: var(--shadow-lg);
   border-color: var(--primary);
   background: var(--gray-50);
@@ -151,6 +151,107 @@ body {
 
 .info-toggle:hover svg {
   transform: scale(1.1);
+}
+
+.backend-language-control {
+  position: absolute;
+  top: 0;
+  right: 120px;
+  z-index: 100;
+}
+
+.btn-backend-language {
+  width: 48px;
+  height: 48px;
+  background: var(--white);
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  font-family: 'SF Pro Display', -apple-system, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  padding: 0;
+  position: relative;
+}
+
+.btn-backend-language svg {
+  font-size: 1.25rem;
+  color: var(--primary);
+  transition: all 0.3s ease;
+}
+
+.btn-backend-language span {
+  position: absolute;
+  bottom: -18px;
+  font-size: 0.65rem;
+  color: var(--gray-600);
+  white-space: nowrap;
+}
+
+.btn-backend-language:hover {
+  transform: translateY(-2px) rotate(15deg);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
+  background: var(--gray-50);
+}
+
+.btn-backend-language:hover svg {
+  transform: scale(1.1);
+}
+
+.backend-language-menu {
+  position: absolute;
+  top: 56px;
+  right: 0;
+  background: var(--white);
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  padding: 0.5rem;
+  min-width: 140px;
+  z-index: 1000;
+  animation: slideDown 0.2s ease-out;
+}
+
+.backend-language-menu .menu-item {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'SF Pro Display', -apple-system, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--gray-700);
+  text-align: left;
+}
+
+.backend-language-menu .menu-item:hover {
+  background: var(--gray-50);
+  color: var(--primary);
+}
+
+.backend-language-menu .menu-item.active {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.backend-language-menu .check-icon {
+  font-size: 1.125rem;
+  color: var(--primary);
 }
 
 .theme-toggle svg {
@@ -1380,6 +1481,40 @@ body.dark-version .info-toggle svg {
 body.dark-version .info-toggle:hover {
   border-color: var(--primary);
   background: var(--gray-700);
+}
+
+body.dark-version .btn-backend-language {
+  background: var(--gray-800);
+  border-color: var(--gray-700);
+  color: var(--white);
+}
+
+body.dark-version .btn-backend-language span {
+  color: var(--gray-400);
+}
+
+body.dark-version .btn-backend-language:hover {
+  border-color: var(--primary);
+  background: var(--gray-700);
+}
+
+body.dark-version .backend-language-menu {
+  background: var(--gray-800);
+  border-color: var(--gray-700);
+}
+
+body.dark-version .backend-language-menu .menu-item {
+  color: var(--gray-300);
+}
+
+body.dark-version .backend-language-menu .menu-item:hover {
+  background: var(--gray-700);
+  color: var(--primary);
+}
+
+body.dark-version .backend-language-menu .menu-item.active {
+  background: rgba(20, 184, 166, 0.2);
+  color: var(--primary);
 }
 
 body.dark-version .theme-toggle svg {

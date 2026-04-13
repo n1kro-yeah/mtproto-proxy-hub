@@ -33,6 +33,17 @@ dist/
 dist-ssr/
 *.local
 
+# C# / .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+.vs/
+*.dll
+*.exe
+*.pdb
+
 # IDE
 .vscode/
 .idea/
@@ -49,6 +60,9 @@ dist-ssr/
 # Logs
 logs/
 *.log
+backend.log
+frontend.log
+backend_csharp.log
 
 # OS
 Thumbs.db

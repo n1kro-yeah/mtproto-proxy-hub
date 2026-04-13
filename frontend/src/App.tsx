@@ -7,6 +7,7 @@ import { SortControl } from './components/SortControl';
 import { PingTypeControl, type PingType } from './components/PingTypeControl';
 import { ViewModeControl, type ViewMode } from './components/ViewModeControl';
 import { AutoRefreshControl } from './components/AutoRefreshControl';
+import { BackendLanguageControl, type BackendLanguage } from './components/BackendLanguageControl';
 import { proxyService } from './services/api';
 import { HARDCODED_PROXIES, type Proxy } from './types/proxy';
 import type { SortState, SortCriterion } from './types/sort';
@@ -42,6 +43,7 @@ function App() {
   const [isRefreshTextChanging, setIsRefreshTextChanging] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('card');
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<number | null>(null); // null = disabled by default
+  const [backendLanguage, setBackendLanguage] = useState<BackendLanguage>('python');
   const prevCheckingAllRef = useRef(checkingAll);
   const autoRefreshTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -125,6 +127,12 @@ function App() {
     if (savedInterval) {
       const interval = savedInterval === 'null' ? null : parseInt(savedInterval);
       setAutoRefreshInterval(interval);
+    }
+
+    // Check for saved backend language
+    const savedBackendLanguage = localStorage.getItem('backendLanguage') as BackendLanguage;
+    if (savedBackendLanguage === 'python' || savedBackendLanguage === 'csharp') {
+      setBackendLanguage(savedBackendLanguage);
     }
   }, []);
 
@@ -302,6 +310,11 @@ function App() {
     localStorage.setItem('autoRefreshInterval', interval === null ? 'null' : interval.toString());
   };
 
+  const handleBackendLanguageChange = (lang: BackendLanguage) => {
+    setBackendLanguage(lang);
+    localStorage.setItem('backendLanguage', lang);
+  };
+
   const t = (key: Parameters<typeof getTranslation>[1]) => getTranslation(language, key);
 
   const sortedProxies = useMemo(() => {
@@ -334,6 +347,10 @@ function App() {
       <header className="header">
         <h1>{t('title')}</h1>
         <p>{t('subtitle')}</p>
+        <BackendLanguageControl 
+          language={backendLanguage}
+          onLanguageChange={handleBackendLanguageChange}
+        />
         <button onClick={() => navigate('/about')} className="info-toggle" title="О проекте">
           <InfoIcon />
         </button>

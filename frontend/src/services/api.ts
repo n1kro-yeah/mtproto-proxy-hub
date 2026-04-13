@@ -1,10 +1,14 @@
 import type { Proxy } from '../types/proxy';
 import type { PingType } from '../components/PingTypeControl';
 
-const API_BASE = '/api';
+const getApiBase = () => {
+  const backendLanguage = localStorage.getItem('backendLanguage') || 'python';
+  return backendLanguage === 'csharp' ? 'http://127.0.0.1:8001/api' : '/api';
+};
 
 export const proxyService = {
   async getProxies(): Promise<Omit<Proxy, 'status' | 'latency' | 'country' | 'city' | 'last_checked'>[]> {
+    const API_BASE = getApiBase();
     const response = await fetch(`${API_BASE}/proxies`);
     if (!response.ok) throw new Error('Failed to fetch proxies');
     const data = await response.json();
@@ -16,6 +20,7 @@ export const proxyService = {
     pingType: PingType = 'tcp',
     viaProxyUrl?: string
   ): Promise<Proxy> {
+    const API_BASE = getApiBase();
     const response = await fetch(`${API_BASE}/check-proxy`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -34,6 +39,7 @@ export const proxyService = {
     pingType: PingType = 'tcp',
     viaProxyUrl?: string
   ): Promise<Proxy[]> {
+    const API_BASE = getApiBase();
     const proxiesWithPingType = proxies.map(p => ({ 
       ...p, 
       ping_type: pingType,

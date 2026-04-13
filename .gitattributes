@@ -17,3 +17,5 @@ package-lock.json linguist-generated
 *.ts linguist-language=TypeScript
 *.py linguist-language=Python
 *.css linguist-language=CSS
+*.cs linguist-language=C#
+*.csproj linguist-language=XML

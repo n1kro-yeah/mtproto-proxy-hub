@@ -15,7 +15,12 @@ echo.
 REM Start Backend in background (hidden)
 start /B "" cmd /c "cd ..\backend && python -m uvicorn main:app --reload --port 8000 > backend.log 2>&1"
 set BACKEND_STARTED=1
-echo [OK] Backend started on http://localhost:8000
+echo [OK] Backend (Python) started on http://localhost:8000
+
+REM Start C# Backend in background (hidden)
+start /B "" cmd /c "cd ..\backend_csharp && dotnet run > backend_csharp.log 2>&1"
+set BACKEND_CSHARP_STARTED=1
+echo [OK] Backend (C#) started on http://localhost:8001
 
 REM Wait a bit for backend to start
 timeout /t 3 /nobreak > nul
@@ -29,24 +34,28 @@ echo.
 echo ========================================
 echo   Servers Status
 echo ========================================
-echo Backend:  RUNNING (http://localhost:8000)
-echo Frontend: RUNNING (http://localhost:3000)
+echo Backend (Python):  RUNNING (http://localhost:8000)
+echo Backend (C#):      RUNNING (http://localhost:8001)
+echo Frontend:          RUNNING (http://localhost:3000)
 echo.
 echo Logs are saved to:
 echo   backend/backend.log
+echo   backend_csharp/backend_csharp.log
 echo   frontend/frontend.log
 echo.
 echo ========================================
 echo   Available Commands
 echo ========================================
-echo stop-backend  - Stop Backend server
-echo stop-frontend - Stop Frontend server
-echo stop          - Stop all servers
-echo status        - Show servers status
-echo restart       - Restart all servers
-echo logs-backend  - Show backend logs
-echo logs-frontend - Show frontend logs
-echo exit          - Stop all and exit
+echo stop-backend       - Stop Python Backend server
+echo stop-backend-cs    - Stop C# Backend server
+echo stop-frontend      - Stop Frontend server
+echo stop               - Stop all servers
+echo status             - Show servers status
+echo restart            - Restart all servers
+echo logs-backend       - Show Python backend logs
+echo logs-backend-cs    - Show C# backend logs
+echo logs-frontend      - Show frontend logs
+echo exit               - Stop all and exit
 echo ========================================
 echo.
 
@@ -54,11 +63,13 @@ echo.
 set /p command="Enter command: "
 
 if /i "%command%"=="stop-backend" goto STOP_BACKEND
+if /i "%command%"=="stop-backend-cs" goto STOP_BACKEND_CS
 if /i "%command%"=="stop-frontend" goto STOP_FRONTEND
 if /i "%command%"=="stop" goto STOP_ALL
 if /i "%command%"=="status" goto SHOW_STATUS
 if /i "%command%"=="restart" goto RESTART_ALL
 if /i "%command%"=="logs-backend" goto LOGS_BACKEND
+if /i "%command%"=="logs-backend-cs" goto LOGS_BACKEND_CS
 if /i "%command%"=="logs-frontend" goto LOGS_FRONTEND
 if /i "%command%"=="exit" goto EXIT_PROGRAM
 if /i "%command%"=="" goto COMMAND_LOOP
@@ -75,6 +86,23 @@ echo ========================================
 cd ..\backend
 if exist backend.log (
     powershell -Command "Get-Content backend.log -Tail 20"
+) else (
+    echo No logs found
+)
+cd ..\start
+echo.
+echo ========================================
+pause
+goto COMMAND_LOOP
+
+:LOGS_BACKEND_CS
+echo.
+echo ========================================
+echo   C# Backend Logs (last 20 lines)
+echo ========================================
+cd ..\backend_csharp
+if exist backend_csharp.log (
+    powershell -Command "Get-Content backend_csharp.log -Tail 20"
 ) else (
     echo No logs found
 )
@@ -111,6 +139,16 @@ echo [OK] Backend stopped
 echo.
 goto COMMAND_LOOP
 
+:STOP_BACKEND_CS
+echo.
+echo Stopping C# Backend server...
+taskkill /F /IM dotnet.exe /FI "COMMANDLINE eq *backend_csharp*" > nul 2>&1
+for /f "tokens=5" %%a in ('netstat -aon ^| find ":8001" ^| find "LISTENING"') do taskkill /F /PID %%a > nul 2>&1
+set BACKEND_CSHARP_STARTED=0
+echo [OK] C# Backend stopped
+echo.
+goto COMMAND_LOOP
+
 :STOP_FRONTEND
 echo.
 echo Stopping Frontend server...
@@ -125,6 +163,7 @@ goto COMMAND_LOOP
 echo.
 echo Stopping all servers...
 call :STOP_BACKEND_SILENT
+call :STOP_BACKEND_CS_SILENT
 call :STOP_FRONTEND_SILENT
 echo [OK] All servers stopped
 echo.
@@ -134,6 +173,12 @@ goto COMMAND_LOOP
 taskkill /F /IM python.exe /FI "WINDOWTITLE eq *uvicorn*" > nul 2>&1
 taskkill /F /IM python.exe /FI "COMMANDLINE eq *uvicorn*" > nul 2>&1
 set BACKEND_STARTED=0
+goto :EOF
+
+:STOP_BACKEND_CS_SILENT
+taskkill /F /IM dotnet.exe /FI "COMMANDLINE eq *backend_csharp*" > nul 2>&1
+for /f "tokens=5" %%a in ('netstat -aon ^| find ":8001" ^| find "LISTENING"') do taskkill /F /PID %%a > nul 2>&1
+set BACKEND_CSHARP_STARTED=0
 goto :EOF
 
 :STOP_FRONTEND_SILENT
@@ -148,14 +193,19 @@ echo ========================================
 echo   Current Status
 echo ========================================
 if %BACKEND_STARTED%==1 (
-    echo Backend:  RUNNING (http://localhost:8000)
+    echo Backend (Python):  RUNNING (http://localhost:8000)
 ) else (
-    echo Backend:  STOPPED
+    echo Backend (Python):  STOPPED
+)
+if %BACKEND_CSHARP_STARTED%==1 (
+    echo Backend (C#):      RUNNING (http://localhost:8001)
+) else (
+    echo Backend (C#):      STOPPED
 )
 if %FRONTEND_STARTED%==1 (
-    echo Frontend: RUNNING (http://localhost:3000)
+    echo Frontend:          RUNNING (http://localhost:3000)
 ) else (
-    echo Frontend: STOPPED
+    echo Frontend:          STOPPED
 )
 echo ========================================
 echo.
@@ -165,6 +215,7 @@ goto COMMAND_LOOP
 echo.
 echo Restarting all servers...
 call :STOP_BACKEND_SILENT
+call :STOP_BACKEND_CS_SILENT
 call :STOP_FRONTEND_SILENT
 timeout /t 1 /nobreak > nul
 goto MAIN_MENU
@@ -173,9 +224,10 @@ goto MAIN_MENU
 echo.
 echo Stopping all servers and exiting...
 call :STOP_BACKEND_SILENT
+call :STOP_BACKEND_CS_SILENT
 call :STOP_FRONTEND_SILENT
 echo [OK] All servers stopped
 echo.
 echo Goodbye!
-timeout /t 2 /nobreak > nul
-exit /b 0
+timeout /t 1 /nobreak > nul
+taskkill /F /IM cmd.exe /FI "WINDOWTITLE eq MTProto Proxy Hub - Control Panel*" > nul 2>&1
