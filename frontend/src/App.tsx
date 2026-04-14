@@ -158,12 +158,20 @@ function App() {
 
   const initializeProxies = async () => {
     try {
+      // Check if we have cached proxies in sessionStorage
+      const cached = sessionStorage.getItem('cachedProxies');
+      const cachedLoaded = sessionStorage.getItem('cachedLoadedProxies');
+      if (cached && cachedLoaded) {
+        setProxies(JSON.parse(cached));
+        setLoadedProxies(JSON.parse(cachedLoaded));
+        setLoading(false);
+        return;
+      }
+
       console.log('Loading proxies from backend...');
-      // Load proxies from backend
       const fetchedProxies = await proxyService.getProxies();
       console.log(`Received ${fetchedProxies.length} proxies from backend`);
       
-      // Combine hardcoded proxies with fetched proxies from GitHub
       const combinedProxies = [...HARDCODED_PROXIES, ...fetchedProxies];
       console.log(`Total proxies (hardcoded + GitHub): ${combinedProxies.length}`);
       
@@ -178,11 +186,12 @@ function App() {
 
       setLoadedProxies(combinedProxies);
       setProxies(initialProxies);
+      sessionStorage.setItem('cachedProxies', JSON.stringify(initialProxies));
+      sessionStorage.setItem('cachedLoadedProxies', JSON.stringify(combinedProxies));
       setLoading(false);
     } catch (err) {
       console.error('Failed to load proxies from backend, using only hardcoded:', err);
       
-      // Fallback to only hardcoded proxies if backend fails
       const initialProxies: Proxy[] = HARDCODED_PROXIES.map(p => ({
         ...p,
         status: 'unchecked' as const,
@@ -194,6 +203,8 @@ function App() {
 
       setLoadedProxies(HARDCODED_PROXIES);
       setProxies(initialProxies);
+      sessionStorage.setItem('cachedProxies', JSON.stringify(initialProxies));
+      sessionStorage.setItem('cachedLoadedProxies', JSON.stringify(HARDCODED_PROXIES));
       setLoading(false);
     }
   };
@@ -213,6 +224,7 @@ function App() {
         pingType === 'via-proxy' ? viaProxyUrl : undefined
       );
       setProxies(results);
+      sessionStorage.setItem('cachedProxies', JSON.stringify(results));
       setLastCheckTime(new Date());
       setCheckDuration((Date.now() - startTime) / 1000); // Convert to seconds
     } catch (err: any) {
@@ -246,9 +258,11 @@ function App() {
         pingType === 'via-proxy' ? viaProxyUrl : undefined
       );
 
-      setProxies(prev => prev.map((p, i) =>
-        i === index ? result : p
-      ));
+      setProxies(prev => {
+        const updated = prev.map((p, i) => i === index ? result : p);
+        sessionStorage.setItem('cachedProxies', JSON.stringify(updated));
+        return updated;
+      });
     } catch (err) {
       setError('Failed to check proxy');
       setProxies(prev => prev.map((p, i) =>

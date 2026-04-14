@@ -10,7 +10,7 @@ export function About() {
   return (
     <div className="about-page">
       <div className="about-container">
-        <button onClick={() => navigate('/')} className="back-button">
+        <button onClick={() => navigate('/', { replace: true })} className="back-button">
           <ArrowBackIcon />
           <span>Назад</span>
         </button>
