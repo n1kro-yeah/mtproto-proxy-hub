@@ -53,7 +53,7 @@ class ProxiesRequest(BaseModel):
     proxies: list[ProxyCheck]
 
 
-async def check_connection(host: str, port: int, timeout: float = 2.0) -> tuple[bool, Optional[float]]:
+async def check_connection(host: str, port: int, timeout: float = 5.0) -> tuple[bool, Optional[float]]:
     """Check if proxy is accessible using TCP connection"""
     start = time.time()
     try:
@@ -325,10 +325,10 @@ async def check_all_proxies(request: ProxiesRequest):
     try:
         results = await asyncio.wait_for(
             asyncio.gather(*[check_one(p) for p in request.proxies]),
-            timeout=25.0  # Hard 25 second timeout for entire batch
+            timeout=40.0  # Hard 40 second timeout for entire batch (frontend has 45s)
         )
     except asyncio.TimeoutError:
-        print("check-all-proxies timed out after 25 seconds")
+        print("check-all-proxies timed out after 40 seconds")
         raise HTTPException(status_code=504, detail="Proxy check timed out")
     
     return list(results)

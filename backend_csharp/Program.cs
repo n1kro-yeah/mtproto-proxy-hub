@@ -25,6 +25,24 @@ app.UseCors();
 
 app.MapGet("/", () => new { message = "MTProto Proxy Hub API (C#)" });
 
+app.MapGet("/api/test-connection", async () =>
+{
+    // Test with a known working server (Google DNS)
+    var testHost = "8.8.8.8";
+    var testPort = 53;
+    
+    Console.WriteLine($"Testing connection to {testHost}:{testPort}");
+    var (isOnline, latency) = await ProxyCheckerService.CheckTcpConnection(testHost, testPort);
+    
+    return Results.Ok(new { 
+        testHost, 
+        testPort, 
+        isOnline, 
+        latency,
+        message = isOnline ? "TCP connection test successful" : "TCP connection test failed"
+    });
+});
+
 app.MapGet("/api/proxies", () =>
 {
     var proxies = ProxyCheckerService.GetLoadedProxies();

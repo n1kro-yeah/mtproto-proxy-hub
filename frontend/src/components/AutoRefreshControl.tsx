@@ -159,7 +159,7 @@ export function AutoRefreshControl({ interval, onIntervalChange }: AutoRefreshCo
             onChange={(e) => setCustomValue(e.target.value)}
             placeholder="Enter minutes"
             helperText="Enter a positive number of minutes"
-            inputProps={{ min: 1, step: 1 }}
+            slotProps={{ htmlInput: { min: 1, step: 1 } }}
             sx={{ mt: 2 }}
           />
         </DialogContent>

@@ -1,0 +1,105 @@
+Date : 2026-04-13 21:54:54
+Directory : c:\Claude Code\mtproto-proxy-hub
+Total : 50 files,  10672 codes, 261 comments, 1393 blanks, all 12326 lines
+
+Languages
++--------------------+------------+------------+------------+------------+------------+
+| language           | files      | code       | comment    | blank      | total      |
++--------------------+------------+------------+------------+------------+------------+
+| CSS                |          4 |      3,302 |         38 |        599 |      3,939 |
+| JSON               |          3 |      2,897 |          0 |          3 |      2,900 |
+| TypeScript JSX     |         16 |      1,935 |         77 |        245 |      2,257 |
+| TypeScript         |          8 |        676 |         99 |         95 |        870 |
+| Markdown           |          7 |        554 |          0 |        180 |        734 |
+| C++                |          1 |        375 |         24 |         95 |        494 |
+| C#                 |          2 |        330 |          2 |         70 |        402 |
+| Batch              |          4 |        279 |          5 |         37 |        321 |
+| Python             |          1 |        271 |          7 |         57 |        335 |
+| HTML               |          1 |         26 |          4 |          6 |         36 |
+| JSON with Comments |          1 |         20 |          0 |          1 |         21 |
+| XML                |          1 |          7 |          0 |          3 |         10 |
+| YAML               |          1 |          0 |          5 |          2 |          7 |
++--------------------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                   |         50 |     10,672 |        261 |      1,393 |     12,326 |
+| . (Files)                                                                           |          2 |        162 |          0 |         41 |        203 |
+| .github                                                                             |          3 |         43 |          5 |         16 |         64 |
+| .github (Files)                                                                     |          1 |          0 |          5 |          2 |          7 |
+| .github\ISSUE_TEMPLATE                                                              |          2 |         43 |          0 |         14 |         57 |
+| backend                                                                             |          1 |        271 |          7 |         57 |        335 |
+| backend_cpp                                                                         |          4 |        607 |         25 |        161 |        793 |
+| backend_csharp                                                                      |          4 |        405 |          2 |         98 |        505 |
+| frontend                                                                            |         32 |      8,830 |        218 |        948 |      9,996 |
+| frontend (Files)                                                                    |          5 |      2,941 |          4 |         11 |      2,956 |
+| frontend\src                                                                        |         27 |      5,889 |        214 |        937 |      7,040 |
+| frontend\src (Files)                                                                |          2 |        437 |         18 |         53 |        508 |
+| frontend\src\components                                                             |         12 |      1,238 |         34 |        151 |      1,423 |
+| frontend\src\locales                                                                |          1 |         94 |         20 |         21 |        135 |
+| frontend\src\pages                                                                  |          2 |        260 |         25 |         41 |        326 |
+| frontend\src\services                                                               |          1 |         64 |          0 |          5 |         69 |
+| frontend\src\styles                                                                 |          4 |      3,302 |         38 |        599 |      3,939 |
+| frontend\src\types                                                                  |          3 |        119 |          1 |         14 |        134 |
+| frontend\src\utils                                                                  |          2 |        375 |         78 |         53 |        506 |
+| start                                                                               |          4 |        354 |          4 |         72 |        430 |
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| filename                                                                            | language           | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| c:\Claude Code\mtproto-proxy-hub\.github\FUNDING.yml                                | YAML               |          0 |          5 |          2 |          7 |
+| c:\Claude Code\mtproto-proxy-hub\.github\ISSUE_TEMPLATE\bug_report.md               | Markdown           |         26 |          0 |          8 |         34 |
+| c:\Claude Code\mtproto-proxy-hub\.github\ISSUE_TEMPLATE\feature_request.md          | Markdown           |         17 |          0 |          6 |         23 |
+| c:\Claude Code\mtproto-proxy-hub\README.md                                          | Markdown           |        136 |          0 |         40 |        176 |
+| c:\Claude Code\mtproto-proxy-hub\backend\main.py                                    | Python             |        271 |          7 |         57 |        335 |
+| c:\Claude Code\mtproto-proxy-hub\backend_cpp\INSTALL.md                             | Markdown           |        104 |          0 |         33 |        137 |
+| c:\Claude Code\mtproto-proxy-hub\backend_cpp\README.md                              | Markdown           |         80 |          0 |         25 |        105 |
+| c:\Claude Code\mtproto-proxy-hub\backend_cpp\build.bat                              | Batch              |         48 |          1 |          8 |         57 |
+| c:\Claude Code\mtproto-proxy-hub\backend_cpp\main.cpp                               | C++                |        375 |         24 |         95 |        494 |
+| c:\Claude Code\mtproto-proxy-hub\backend_csharp\Program.cs                          | C#                 |         38 |          1 |         12 |         51 |
+| c:\Claude Code\mtproto-proxy-hub\backend_csharp\ProxyChecker.cs                     | C#                 |        292 |          1 |         58 |        351 |
+| c:\Claude Code\mtproto-proxy-hub\backend_csharp\ProxyChecker.csproj                 | XML                |          7 |          0 |          3 |         10 |
+| c:\Claude Code\mtproto-proxy-hub\backend_csharp\README.md                           | Markdown           |         68 |          0 |         25 |         93 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\index.html                                | HTML               |         26 |          4 |          6 |         36 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\package-lock.json                         | JSON               |      2,836 |          0 |          1 |      2,837 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\package.json                              | JSON               |         35 |          0 |          1 |         36 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\App.tsx                               | TypeScript JSX     |        419 |         18 |         51 |        488 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\components\AutoRefreshControl.tsx     | TypeScript JSX     |        161 |          1 |         19 |        181 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\components\BackendLanguageControl.tsx | TypeScript JSX     |         83 |          0 |         11 |         94 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\components\CountryTooltip.tsx         | TypeScript JSX     |         53 |          4 |          9 |         66 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\components\LanguageToggle.tsx         | TypeScript JSX     |         22 |          0 |          4 |         26 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\components\MapCanvas.tsx              | TypeScript JSX     |        157 |          6 |         15 |        178 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\components\MapControls.tsx            | TypeScript JSX     |         65 |          6 |          7 |         78 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\components\MapLegend.tsx              | TypeScript JSX     |         49 |          6 |          5 |         60 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\components\PingTypeControl.tsx        | TypeScript JSX     |        198 |          5 |         25 |        228 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\components\ProxyCard.tsx              | TypeScript JSX     |        232 |          0 |         23 |        255 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\components\SkeletonLoader.tsx         | TypeScript JSX     |         45 |          0 |          5 |         50 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\components\SortControl.tsx            | TypeScript JSX     |        145 |          6 |         24 |        175 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\components\ViewModeControl.tsx        | TypeScript JSX     |         28 |          0 |          4 |         32 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\locales\translations.ts               | TypeScript         |         94 |         20 |         21 |        135 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\main.tsx                              | TypeScript JSX     |         18 |          0 |          2 |         20 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\pages\About.tsx                       | TypeScript JSX     |         89 |          0 |         11 |        100 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\pages\ProxyMap.tsx                    | TypeScript JSX     |        171 |         25 |         30 |        226 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\services\api.ts                       | TypeScript         |         64 |          0 |          5 |         69 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\styles\About.css                      | CSS                |        285 |          2 |         46 |        333 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\styles\App.css                        | CSS                |      2,551 |         24 |        464 |      3,039 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\styles\ProxyMap.css                   | CSS                |        424 |         10 |         83 |        517 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\styles\fonts.css                      | CSS                |         42 |          2 |          6 |         50 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\types\map.ts                          | TypeScript         |         49 |          1 |          8 |         58 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\types\proxy.ts                        | TypeScript         |         57 |          0 |          2 |         59 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\types\sort.ts                         | TypeScript         |         13 |          0 |          4 |         17 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\utils\mapData.ts                      | TypeScript         |        324 |         76 |         39 |        439 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\src\utils\sorting.ts                      | TypeScript         |         51 |          2 |         14 |         67 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\tsconfig.json                             | JSON with Comments |         20 |          0 |          1 |         21 |
+| c:\Claude Code\mtproto-proxy-hub\frontend\vite.config.ts                            | TypeScript         |         24 |          0 |          2 |         26 |
+| c:\Claude Code\mtproto-proxy-hub\start\README.md                                    | Markdown           |        123 |          0 |         43 |        166 |
+| c:\Claude Code\mtproto-proxy-hub\start\start-all.bat                                | Batch              |        207 |          4 |         23 |        234 |
+| c:\Claude Code\mtproto-proxy-hub\start\start-backend.bat                            | Batch              |         12 |          0 |          3 |         15 |
+| c:\Claude Code\mtproto-proxy-hub\start\start-frontend.bat                           | Batch              |         12 |          0 |          3 |         15 |
+| c:\Claude Code\mtproto-proxy-hub\vercel.json                                        | JSON               |         26 |          0 |          1 |         27 |
+| Total                                                                               |                    |     10,672 |        261 |      1,393 |     12,326 |
++-------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+

@@ -8,6 +8,7 @@ import { PingTypeControl, type PingType } from './components/PingTypeControl';
 import { ViewModeControl, type ViewMode } from './components/ViewModeControl';
 import { AutoRefreshControl } from './components/AutoRefreshControl';
 import { BackendLanguageControl, type BackendLanguage } from './components/BackendLanguageControl';
+import { HideOfflineControl } from './components/HideOfflineControl';
 import { proxyService } from './services/api';
 import { HARDCODED_PROXIES, type Proxy } from './types/proxy';
 import type { SortState, SortCriterion } from './types/sort';
@@ -22,6 +23,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import SyncIcon from '@mui/icons-material/Sync';
 import HelpIcon from '@mui/icons-material/Help';
+import MapIcon from '@mui/icons-material/Map';
 
 function App() {
   const navigate = useNavigate();
@@ -44,6 +46,7 @@ function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('card');
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<number | null>(null); // null = disabled by default
   const [backendLanguage, setBackendLanguage] = useState<BackendLanguage>('python');
+  const [hideOffline, setHideOffline] = useState(false);
   const prevCheckingAllRef = useRef(checkingAll);
   const autoRefreshTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -134,6 +137,12 @@ function App() {
     if (savedBackendLanguage === 'python' || savedBackendLanguage === 'csharp' || savedBackendLanguage === 'cpp') {
       setBackendLanguage(savedBackendLanguage);
     }
+
+    // Check for saved hide offline preference
+    const savedHideOffline = localStorage.getItem('hideOffline');
+    if (savedHideOffline === 'true') {
+      setHideOffline(true);
+    }
   }, []);
 
   const toggleDarkMode = () => {
@@ -208,7 +217,7 @@ function App() {
       setCheckDuration((Date.now() - startTime) / 1000); // Convert to seconds
     } catch (err: any) {
       if (err?.name === 'AbortError') {
-        setError('Check timed out after 30 seconds');
+        setError('Check timed out after 45 seconds');
       } else {
         setError('Failed to check proxies');
       }
@@ -315,11 +324,23 @@ function App() {
     localStorage.setItem('backendLanguage', lang);
   };
 
+  const handleHideOfflineToggle = (hide: boolean) => {
+    setHideOffline(hide);
+    localStorage.setItem('hideOffline', hide.toString());
+  };
+
   const t = (key: Parameters<typeof getTranslation>[1]) => getTranslation(language, key);
 
   const sortedProxies = useMemo(() => {
     return sortProxies(proxies, sortState);
   }, [proxies, sortState]);
+
+  const filteredProxies = useMemo(() => {
+    if (hideOffline) {
+      return sortedProxies.filter(p => p.status !== 'offline');
+    }
+    return sortedProxies;
+  }, [sortedProxies, hideOffline]);
 
   const onlineCount = proxies.filter(p => p.status === 'online').length;
   const offlineCount = proxies.filter(p => p.status === 'offline').length;
@@ -351,6 +372,9 @@ function App() {
           language={backendLanguage}
           onLanguageChange={handleBackendLanguageChange}
         />
+        <button onClick={() => navigate('/map', { state: { proxies }, replace: true })} className="map-toggle" title="Карта прокси">
+          <MapIcon />
+        </button>
         <button onClick={() => navigate('/about')} className="info-toggle" title="О проекте">
           <InfoIcon />
         </button>
@@ -411,6 +435,10 @@ function App() {
               )}
             </div>
             <div className="header-right">
+              <HideOfflineControl 
+                hideOffline={hideOffline}
+                onToggle={handleHideOfflineToggle}
+              />
               <ViewModeControl 
                 viewMode={viewMode}
                 onViewModeChange={handleViewModeChange}
@@ -451,7 +479,7 @@ function App() {
           </div>
 
           <div className={`proxies-grid ${viewMode === 'compact' ? 'compact-view' : ''}`}>
-            {sortedProxies.map((proxy, idx) => (
+            {filteredProxies.map((proxy, idx) => (
               <motion.div
                 key={`${proxy.host}-${proxy.port}-${proxy.secret}`}
                 layout

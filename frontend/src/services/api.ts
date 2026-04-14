@@ -51,7 +51,7 @@ export const proxyService = {
       via_proxy_url: viaProxyUrl
     }));
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    const timeout = setTimeout(() => controller.abort(), 45000); // 45 second timeout
     try {
       const response = await fetch(`${API_BASE}/check-all-proxies`, {
         method: 'POST',

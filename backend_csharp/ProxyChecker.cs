@@ -173,11 +173,25 @@ namespace ProxyChecker
             }
         }
 
-        public static async Task<(bool isOnline, double? latency)> CheckTcpConnection(string host, int port, int timeoutMs = 2000)
+        public static async Task<(bool isOnline, double? latency)> CheckTcpConnection(string host, int port, int timeoutMs = 5000)
         {
             var sw = Stopwatch.StartNew();
             try
             {
+                Console.WriteLine($"Attempting TCP connection to {host}:{port} with timeout {timeoutMs}ms");
+                
+                // Try to resolve DNS first
+                try
+                {
+                    var addresses = await Dns.GetHostAddressesAsync(host);
+                    Console.WriteLine($"DNS resolved {host} to {addresses.Length} addresses: {string.Join(", ", addresses.Select(a => a.ToString()))}");
+                }
+                catch (Exception dnsEx)
+                {
+                    Console.WriteLine($"DNS resolution failed for {host}: {dnsEx.Message}");
+                    return (false, null);
+                }
+                
                 using var client = new TcpClient();
                 var connectTask = client.ConnectAsync(host, port);
                 
@@ -185,18 +199,21 @@ namespace ProxyChecker
                 {
                     await connectTask;
                     sw.Stop();
+                    Console.WriteLine($"TCP connection successful to {host}:{port} in {sw.Elapsed.TotalMilliseconds}ms");
                     return (true, sw.Elapsed.TotalMilliseconds);
                 }
                 
+                Console.WriteLine($"TCP connection timeout to {host}:{port} after {timeoutMs}ms");
                 return (false, null);
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"TCP connection error to {host}:{port}: {ex.Message}");
                 return (false, null);
             }
         }
 
-        public static async Task<(bool isOnline, double? latency)> CheckIcmpPing(string host, int timeoutMs = 2000)
+        public static async Task<(bool isOnline, double? latency)> CheckIcmpPing(string host, int timeoutMs = 5000)
         {
             try
             {
@@ -264,15 +281,19 @@ namespace ProxyChecker
 
         public static async Task<ProxyResult> CheckProxy(ProxyCheckRequest proxy)
         {
+            Console.WriteLine($"Checking proxy: {proxy.Host}:{proxy.Port} (type: {proxy.Type}, ping_type: {proxy.PingType})");
+            
             bool isOnline;
             double? latency;
 
             if (proxy.PingType == "icmp")
             {
+                Console.WriteLine($"Using ICMP ping for {proxy.Host}");
                 (isOnline, latency) = await CheckIcmpPing(proxy.Host);
             }
             else if (proxy.PingType == "via-proxy")
             {
+                Console.WriteLine($"Using via-proxy check for {proxy.Host}:{proxy.Port}");
                 (isOnline, latency) = await CheckViaProxy(
                     proxy.Host, proxy.Port, proxy.Type, proxy.Secret,
                     proxy.ViaProxyUrl ?? "https://www.gstatic.com/generate_204"
@@ -280,8 +301,11 @@ namespace ProxyChecker
             }
             else
             {
+                Console.WriteLine($"Using TCP connection check for {proxy.Host}:{proxy.Port}");
                 (isOnline, latency) = await CheckTcpConnection(proxy.Host, proxy.Port);
             }
+
+            Console.WriteLine($"Result for {proxy.Host}:{proxy.Port} - Online: {isOnline}, Latency: {latency}ms");
 
             var (country, city) = isOnline ? await GetGeolocation(proxy.Host) : (null, null);
 
